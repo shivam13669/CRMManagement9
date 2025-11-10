@@ -222,6 +222,17 @@ export async function createServer() {
     authenticateToken,
     handleGetUsersByRole,
   );
+  // Admin management specific
+  app.get(
+    "/api/admin/admin-users",
+    authenticateToken,
+    handleGetAdminUsers,
+  );
+  app.post(
+    "/api/admin/users/:userId/set-password",
+    authenticateToken,
+    handleAdminSetUserPassword,
+  );
   app.post(
     "/api/admin/users/:userId/suspend",
     authenticateToken,
