@@ -51,6 +51,8 @@ import {
   handleReactivateUser,
   handleDeleteUser,
   handleAddDoctor,
+  handleGetAdminUsers,
+  handleAdminSetUserPassword,
 } from "./routes/user-management";
 import {
   handleCreateFeedback,
