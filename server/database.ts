@@ -1372,6 +1372,78 @@ export function getUsersByRole(role: string): any[] {
   }
 }
 
+// Admin helpers
+export function getAdminUsers(): any[] {
+  try {
+    const result = db.exec(`
+      SELECT u.id, u.username, u.email, u.role, u.full_name, u.phone,
+             u.status, u.created_at, u.updated_at
+      FROM users u
+      WHERE u.role = 'admin'
+      ORDER BY u.created_at DESC
+    `);
+
+    if (!result || result.length === 0) {
+      return [];
+    }
+
+    const columns = result[0].columns;
+    const users = result[0].values.map((row) => {
+      const user: any = {};
+      columns.forEach((col, index) => {
+        user[col] = row[index];
+      });
+      return user;
+    });
+
+    return users;
+  } catch (error) {
+    console.error("❌ Error getting admin users:", error);
+    return [];
+  }
+}
+
+export function getUserById(userId: number): User | undefined {
+  try {
+    const result = db.exec("SELECT * FROM users WHERE id = ?", [userId]);
+    if (!result || result.length === 0 || !result[0] || result[0].values.length === 0) {
+      return undefined;
+    }
+    const columns = result[0].columns;
+    const row = result[0].values[0];
+    const user: any = {};
+    columns.forEach((col, index) => {
+      user[col] = row[index];
+    });
+    return user as User;
+  } catch (error) {
+    console.error("❌ Error getting user by id:", error);
+    return undefined;
+  }
+}
+
+export async function updateUserPasswordById(
+  userId: number,
+  newPassword: string,
+): Promise<boolean> {
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    db.run(
+      `
+      UPDATE users
+      SET password = ?, updated_at = datetime('now')
+      WHERE id = ?
+    `,
+      [hashedPassword, userId],
+    );
+    saveDatabase();
+    return true;
+  } catch (error) {
+    console.error("❌ Error updating password by id:", error);
+    return false;
+  }
+}
+
 // Hospital operations
 export function createHospital(hospital: Hospital): number {
   try {
