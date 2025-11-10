@@ -88,7 +88,7 @@ export const handleCreateAmbulanceRequest: RequestHandler = async (
 // Get ambulance requests (for staff and admin)
 export const handleGetAmbulanceRequests: RequestHandler = async (req, res) => {
   try {
-    const { role } = (req as any).user;
+    const { role, userId } = (req as any).user;
 
     if (role !== "staff" && role !== "admin") {
       return res
@@ -96,11 +96,29 @@ export const handleGetAmbulanceRequests: RequestHandler = async (req, res) => {
         .json({ error: "Only staff and admin can view ambulance requests" });
     }
 
+    // Get admin's state (if admin)
+    let adminState = null;
+    let isSystemAdmin = true;
+    if (role === "admin") {
+      const adminMetaResult = db.exec(
+        `SELECT state FROM admin_metadata WHERE user_id = ?`,
+        [userId],
+      );
+      if (
+        adminMetaResult &&
+        adminMetaResult.length > 0 &&
+        adminMetaResult[0].values.length > 0
+      ) {
+        adminState = adminMetaResult[0].values[0][0];
+        isSystemAdmin = !adminState;
+      }
+    }
+
     let result: any;
 
     try {
       // Try query including signup lat/lng (newer schema)
-      result = db.exec(`
+      let query = `
       SELECT
         ar.id,
         ar.pickup_address,
@@ -111,6 +129,7 @@ export const handleGetAmbulanceRequests: RequestHandler = async (req, res) => {
         ar.status,
         ar.priority,
         ar.notes,
+        ar.is_read,
         ar.created_at,
         u.full_name as patient_name,
         u.email as patient_email,
@@ -118,21 +137,28 @@ export const handleGetAmbulanceRequests: RequestHandler = async (req, res) => {
         c.address as customer_signup_address,
         c.signup_lat as customer_signup_lat,
         c.signup_lng as customer_signup_lng,
+        c.state as customer_state,
         staff.full_name as assigned_staff_name,
         staff.phone as assigned_staff_phone
       FROM ambulance_requests ar
       JOIN users u ON ar.customer_user_id = u.id
       LEFT JOIN customers c ON u.id = c.user_id
-      LEFT JOIN users staff ON ar.assigned_staff_id = staff.id
-      ORDER BY ar.created_at DESC
-    `);
+      LEFT JOIN users staff ON ar.assigned_staff_id = staff.id`;
+
+      // Filter by admin's state if not system admin
+      if (role === "admin" && adminState) {
+        query += ` WHERE c.state = ?`;
+        result = db.exec(query + ` ORDER BY ar.created_at DESC`, [adminState]);
+      } else {
+        result = db.exec(query + ` ORDER BY ar.created_at DESC`);
+      }
     } catch (err) {
       console.warn(
         "Ambulance query with signup_lat/signup_lng failed, falling back to older query",
         err,
       );
       // Fallback to older query if DB doesn't have the new columns
-      result = db.exec(`
+      let query = `
       SELECT
         ar.id,
         ar.pickup_address,
@@ -143,6 +169,7 @@ export const handleGetAmbulanceRequests: RequestHandler = async (req, res) => {
         ar.status,
         ar.priority,
         ar.notes,
+        ar.is_read,
         ar.created_at,
         u.full_name as patient_name,
         u.email as patient_email,
@@ -153,9 +180,15 @@ export const handleGetAmbulanceRequests: RequestHandler = async (req, res) => {
       FROM ambulance_requests ar
       JOIN users u ON ar.customer_user_id = u.id
       LEFT JOIN customers c ON u.id = c.user_id
-      LEFT JOIN users staff ON ar.assigned_staff_id = staff.id
-      ORDER BY ar.created_at DESC
-    `);
+      LEFT JOIN users staff ON ar.assigned_staff_id = staff.id`;
+
+      // Filter by admin's state if not system admin
+      if (role === "admin" && adminState) {
+        query += ` WHERE c.state = ?`;
+        result = db.exec(query + ` ORDER BY ar.created_at DESC`, [adminState]);
+      } else {
+        result = db.exec(query + ` ORDER BY ar.created_at DESC`);
+      }
     }
 
     let requests = [];
