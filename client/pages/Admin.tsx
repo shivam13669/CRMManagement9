@@ -19,12 +19,6 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../components/ui/tabs";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -75,6 +69,7 @@ import {
   XCircle,
   Search,
   Download,
+  Filter,
 } from "lucide-react";
 
 interface AdminUser {
@@ -269,42 +264,50 @@ export default function AdminPage() {
           </Card>
         </div>
 
-        <div className="mt-4">
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search by name, email, or username..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  Filter
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48">
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">Status</label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="suspended">Suspended</SelectItem>
-                    </SelectContent>
-                  </Select>
+        <Card>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search by name, email, or username..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
+              </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Status</label>
+                    <Select
+                      value={statusFilter}
+                      onValueChange={setStatusFilter}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="suspended">Suspended</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </CardContent>
+        </Card>
 
         <AdminTabs
           admins={admins}
@@ -342,21 +345,35 @@ function AdminTabs({
 }) {
   const [activeTab, setActiveTab] = useState("create");
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="create" className="flex items-center gap-2">
-          <UserCheck className="h-4 w-4" /> Create Admin
-        </TabsTrigger>
-        <TabsTrigger value="manage" className="flex items-center gap-2">
-          <Users className="h-4 w-4" /> Manage Admins
-        </TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setActiveTab("create")}
+          className={`px-6 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+            activeTab === "create"
+              ? "bg-white text-primary shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <UserCheck className="w-4 h-4" />
+          Create Admin
+        </button>
+        <button
+          onClick={() => setActiveTab("manage")}
+          className={`px-6 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+            activeTab === "manage"
+              ? "bg-white text-primary shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Manage Admins
+        </button>
+      </div>
 
-      <TabsContent value="create">
-        <CreateAdminUser />
-      </TabsContent>
+      {activeTab === "create" && <CreateAdminUser />}
 
-      <TabsContent value="manage">
+      {activeTab === "manage" && (
         <ManageAdmins
           admins={admins}
           fetchAdmins={fetchAdmins}
@@ -367,8 +384,8 @@ function AdminTabs({
           setStatusFilter={setStatusFilter}
           exportAdminsCSV={exportAdminsCSV}
         />
-      </TabsContent>
-    </Tabs>
+      )}
+    </div>
   );
 }
 
