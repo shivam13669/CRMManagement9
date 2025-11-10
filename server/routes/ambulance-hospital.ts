@@ -308,6 +308,10 @@ export const handleHospitalRejectRequest: RequestHandler = async (req, res) => {
       [notes || null, serviceRequestId],
     );
 
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
+
     console.log(
       `✅ Hospital ${userId} rejected service request ${serviceRequestId}`,
     );
