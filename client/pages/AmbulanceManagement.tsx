@@ -561,9 +561,7 @@ export default function AmbulanceManagement() {
               <div className="flex items-center space-x-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Completed
-                  </p>
+                  <p className="text-sm font-medium text-gray-600">Completed</p>
                   <p className="text-2xl font-bold text-green-600">
                     {stats.completed}
                   </p>
@@ -627,9 +625,7 @@ export default function AmbulanceManagement() {
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="all">
-              All Requests ({stats.total})
-            </TabsTrigger>
+            <TabsTrigger value="all">All Requests ({stats.total})</TabsTrigger>
             <TabsTrigger value="unread">
               Unread Requests ({stats.unread})
             </TabsTrigger>

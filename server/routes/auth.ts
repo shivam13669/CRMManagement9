@@ -424,11 +424,9 @@ export const handleForgotPassword: RequestHandler = async (req, res) => {
     ).toString();
     if (isRateLimited(`ip:${ip}`) || isRateLimited(`email:${email}`)) {
       console.warn(`⏱️ Rate limit reached for ${ip} or ${email}`);
-      return res
-        .status(429)
-        .json({
-          error: "Too many password reset requests. Please try again later.",
-        });
+      return res.status(429).json({
+        error: "Too many password reset requests. Please try again later.",
+      });
     }
 
     // Generate token
@@ -666,14 +664,8 @@ export const handleCreateAdminUser: RequestHandler = async (req, res) => {
         .json({ error: "Only administrators can create admin users" });
     }
 
-    const {
-      full_name,
-      email,
-      password,
-      confirmPassword,
-      state,
-      district,
-    } = req.body;
+    const { full_name, email, password, confirmPassword, state, district } =
+      req.body;
 
     // Validate required fields
     if (!full_name || !email || !password || !confirmPassword) {

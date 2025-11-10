@@ -38,7 +38,11 @@ interface Notification {
 
 const sidebarItems = [
   { icon: Activity, label: "Dashboard", path: "/hospital-dashboard" },
-  { icon: FileText, label: "Service Requests", path: "/hospital-service-requests" },
+  {
+    icon: FileText,
+    label: "Service Requests",
+    path: "/hospital-service-requests",
+  },
   { icon: Truck, label: "Ambulances", path: "/hospital-ambulances" },
   { icon: Users, label: "Staff Management", path: "/hospital-staff" },
   { icon: Package, label: "Inventory", path: "/hospital-inventory" },

@@ -198,10 +198,7 @@ export const handleGetHospitalServiceRequests: RequestHandler = async (
 };
 
 // Hospital accept service request
-export const handleHospitalAcceptRequest: RequestHandler = async (
-  req,
-  res,
-) => {
+export const handleHospitalAcceptRequest: RequestHandler = async (req, res) => {
   try {
     const { userId, role } = (req as any).user;
     const { serviceRequestId } = req.params;
@@ -265,10 +262,7 @@ export const handleHospitalAcceptRequest: RequestHandler = async (
 };
 
 // Hospital reject service request
-export const handleHospitalRejectRequest: RequestHandler = async (
-  req,
-  res,
-) => {
+export const handleHospitalRejectRequest: RequestHandler = async (req, res) => {
   try {
     const { userId, role } = (req as any).user;
     const { serviceRequestId } = req.params;

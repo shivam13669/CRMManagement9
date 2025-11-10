@@ -94,9 +94,9 @@ export default function HospitalServiceRequests() {
   const [responseModalOpen, setResponseModalOpen] = useState(false);
   const [responseNotes, setResponseNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedAction, setSelectedAction] = useState<"accept" | "reject" | null>(
-    null,
-  );
+  const [selectedAction, setSelectedAction] = useState<
+    "accept" | "reject" | null
+  >(null);
 
   const fetchRequests = async (showRefreshing = false) => {
     try {
@@ -467,9 +467,7 @@ export default function HospitalServiceRequests() {
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="pending">
-              Pending ({stats.pending})
-            </TabsTrigger>
+            <TabsTrigger value="pending">Pending ({stats.pending})</TabsTrigger>
             <TabsTrigger value="responded">
               Responded ({stats.accepted + stats.rejected})
             </TabsTrigger>
@@ -685,7 +683,8 @@ export default function HospitalServiceRequests() {
                 {selectedAction === "accept" ? "Accept" : "Reject"} Request
               </DialogTitle>
               <DialogDescription>
-                Add any notes for {selectedAction === "accept" ? "acceptance" : "rejection"}
+                Add any notes for{" "}
+                {selectedAction === "accept" ? "acceptance" : "rejection"}
               </DialogDescription>
             </DialogHeader>
 
