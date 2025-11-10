@@ -220,14 +220,19 @@ function createTables(): void {
         emergency_type TEXT NOT NULL,
         customer_condition TEXT,
         contact_number TEXT NOT NULL,
-        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'assigned', 'on_the_way', 'completed', 'cancelled')),
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'assigned', 'on_the_way', 'completed', 'cancelled', 'forwarded_to_hospital')),
         priority TEXT DEFAULT 'normal' CHECK(priority IN ('low', 'normal', 'high', 'critical')),
         assigned_staff_id INTEGER,
+        forwarded_to_hospital_id INTEGER,
+        hospital_request_id INTEGER,
+        is_read INTEGER DEFAULT 0,
         notes TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_user_id) REFERENCES users (id) ON DELETE CASCADE,
-        FOREIGN KEY (assigned_staff_id) REFERENCES users (id) ON DELETE SET NULL
+        FOREIGN KEY (assigned_staff_id) REFERENCES users (id) ON DELETE SET NULL,
+        FOREIGN KEY (forwarded_to_hospital_id) REFERENCES users (id) ON DELETE SET NULL,
+        FOREIGN KEY (hospital_request_id) REFERENCES hospital_service_requests (id) ON DELETE SET NULL
       )
     `);
 
@@ -400,7 +405,7 @@ function createTables(): void {
 
 async function runMigrations(): Promise<void> {
   try {
-    console.log("���� Running database migrations...");
+    console.log("🔄 Running database migrations...");
 
     // Migration 1: Add status column to users table
     try {
