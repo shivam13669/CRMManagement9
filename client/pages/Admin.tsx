@@ -289,7 +289,10 @@ export default function AdminPage() {
                 <PopoverContent className="w-48">
                   <div className="space-y-3">
                     <label className="text-sm font-medium">Status</label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <Select
+                      value={statusFilter}
+                      onValueChange={setStatusFilter}
+                    >
                       <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
@@ -368,9 +371,7 @@ function AdminTabs({
         </button>
       </div>
 
-      {activeTab === "create" && (
-        <CreateAdminUser />
-      )}
+      {activeTab === "create" && <CreateAdminUser />}
 
       {activeTab === "manage" && (
         <ManageAdmins
