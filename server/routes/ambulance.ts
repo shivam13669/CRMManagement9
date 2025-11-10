@@ -71,6 +71,10 @@ export const handleCreateAmbulanceRequest: RequestHandler = async (
     const result = db.exec("SELECT last_insert_rowid() as id");
     const requestId = result[0].values[0][0];
 
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
+
     console.log(
       `🚑 Ambulance request created: ID ${requestId} for user ${userId}`,
     );
