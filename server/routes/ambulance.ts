@@ -417,6 +417,10 @@ export const handleAssignAmbulanceRequest: RequestHandler = async (
       [userId, requestId],
     );
 
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
+
     console.log(
       `🚑 Ambulance request ${requestId} assigned to staff ${userId}`,
     );
