@@ -19,7 +19,7 @@ import {
   Shield,
   MessageSquare,
   Building2,
-  Hammer,
+  Layers,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { authUtils } from "../lib/api";
