@@ -91,13 +91,17 @@ export const handleForwardAmbulanceToHospital: RequestHandler = async (
     const hsrResult = db.exec("SELECT last_insert_rowid() as id");
     const hsrId = hsrResult[0].values[0][0];
 
-    // Update ambulance request to mark as forwarded
+    // Update ambulance request to mark as forwarded with in_progress status
     db.run(
       `UPDATE ambulance_requests
-       SET status = 'forwarded_to_hospital', forwarded_to_hospital_id = ?, hospital_request_id = ?, is_read = 1, updated_at = datetime('now')
+       SET status = 'in_progress', forwarded_to_hospital_id = ?, hospital_request_id = ?, is_read = 1, updated_at = datetime('now')
        WHERE id = ?`,
       [hospitalId, hsrId, requestId],
     );
+
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
 
     // Create notifications
     const adminNotifMessage = `Ambulance request #${requestId} forwarded to ${hospital.hospital_name}`;
