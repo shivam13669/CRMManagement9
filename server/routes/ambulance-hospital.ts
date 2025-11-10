@@ -91,13 +91,17 @@ export const handleForwardAmbulanceToHospital: RequestHandler = async (
     const hsrResult = db.exec("SELECT last_insert_rowid() as id");
     const hsrId = hsrResult[0].values[0][0];
 
-    // Update ambulance request to mark as forwarded
+    // Update ambulance request to mark as forwarded with in_progress status
     db.run(
       `UPDATE ambulance_requests
-       SET status = 'forwarded_to_hospital', forwarded_to_hospital_id = ?, hospital_request_id = ?, is_read = 1, updated_at = datetime('now')
+       SET status = 'in_progress', forwarded_to_hospital_id = ?, hospital_request_id = ?, is_read = 1, updated_at = datetime('now')
        WHERE id = ?`,
       [hospitalId, hsrId, requestId],
     );
+
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
 
     // Create notifications
     const adminNotifMessage = `Ambulance request #${requestId} forwarded to ${hospital.hospital_name}`;
@@ -238,7 +242,7 @@ export const handleHospitalAcceptRequest: RequestHandler = async (req, res) => {
       [notes || null, serviceRequestId],
     );
 
-    // Update ambulance request status
+    // Update ambulance request status to assigned (hospital accepted)
     if (ambulanceRequestId) {
       db.run(
         `UPDATE ambulance_requests
@@ -247,6 +251,10 @@ export const handleHospitalAcceptRequest: RequestHandler = async (req, res) => {
         [ambulanceRequestId],
       );
     }
+
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
 
     console.log(
       `✅ Hospital ${userId} accepted service request ${serviceRequestId}`,
@@ -299,6 +307,10 @@ export const handleHospitalRejectRequest: RequestHandler = async (req, res) => {
        WHERE id = ?`,
       [notes || null, serviceRequestId],
     );
+
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
 
     console.log(
       `✅ Hospital ${userId} rejected service request ${serviceRequestId}`,

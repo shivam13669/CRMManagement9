@@ -71,6 +71,10 @@ export const handleCreateAmbulanceRequest: RequestHandler = async (
     const result = db.exec("SELECT last_insert_rowid() as id");
     const requestId = result[0].values[0][0];
 
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
+
     console.log(
       `🚑 Ambulance request created: ID ${requestId} for user ${userId}`,
     );
@@ -182,13 +186,9 @@ export const handleGetAmbulanceRequests: RequestHandler = async (req, res) => {
       LEFT JOIN customers c ON u.id = c.user_id
       LEFT JOIN users staff ON ar.assigned_staff_id = staff.id`;
 
-      // Filter by admin's state if not system admin
-      if (role === "admin" && adminState) {
-        query += ` WHERE c.state = ?`;
-        result = db.exec(query + ` ORDER BY ar.created_at DESC`, [adminState]);
-      } else {
-        result = db.exec(query + ` ORDER BY ar.created_at DESC`);
-      }
+      // For now, don't filter by state in fallback - state column may not exist yet
+      // This will be fixed once migration runs
+      result = db.exec(query + ` ORDER BY ar.created_at DESC`);
     }
 
     let requests = [];
@@ -250,12 +250,16 @@ export const handleUpdateAmbulanceRequest: RequestHandler = async (
     // Update the request
     db.run(
       `
-      UPDATE ambulance_requests 
+      UPDATE ambulance_requests
       SET status = ?, assigned_staff_id = ?, notes = ?, updated_at = datetime('now')
       WHERE id = ?
     `,
       [status, assigned_staff_id || null, notes || null, requestId],
     );
+
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
 
     console.log(`🚑 Ambulance request ${requestId} updated by user ${userId}`);
 
@@ -290,7 +294,7 @@ export const handleGetCustomerAmbulanceRequests: RequestHandler = async (
       `🔍 Querying ambulance_requests WHERE customer_user_id = ${userId}`,
     );
 
-    // First get all ambulance requests, then filter in memory
+    // First get all ambulance requests with hospital response info, then filter in memory
     const allResult = db.exec(`
       SELECT
         ar.id,
@@ -306,10 +310,18 @@ export const handleGetCustomerAmbulanceRequests: RequestHandler = async (
         ar.notes,
         ar.created_at,
         ar.updated_at,
+        ar.forwarded_to_hospital_id,
         staff.full_name as assigned_staff_name,
-        staff.phone as assigned_staff_phone
+        staff.phone as assigned_staff_phone,
+        hospital.hospital_name as forwarded_hospital_name,
+        hsr.status as hospital_request_status,
+        hsr.hospital_response,
+        hsr.hospital_response_at
       FROM ambulance_requests ar
       LEFT JOIN users staff ON ar.assigned_staff_id = staff.id
+      LEFT JOIN hospital_service_requests hsr ON ar.hospital_request_id = hsr.id
+      LEFT JOIN hospitals h ON hsr.hospital_user_id = h.user_id
+      LEFT JOIN users hospital ON h.user_id = hospital.id
       ORDER BY ar.created_at DESC
     `);
 
@@ -405,6 +417,10 @@ export const handleAssignAmbulanceRequest: RequestHandler = async (
       [userId, requestId],
     );
 
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
+
     console.log(
       `🚑 Ambulance request ${requestId} assigned to staff ${userId}`,
     );
@@ -467,6 +483,10 @@ export const handleUpdateAmbulanceStatus: RequestHandler = async (req, res) => {
     `,
       [status, notes || null, requestId],
     );
+
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
 
     console.log(
       `🚑 Ambulance request ${requestId} status updated to ${status} by user ${userId}`,

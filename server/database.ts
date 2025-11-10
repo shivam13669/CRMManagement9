@@ -497,6 +497,21 @@ async function runMigrations(): Promise<void> {
     } catch (error) {
       console.log("Forwarding columns migration skipped:", error.message);
     }
+
+    // Migration 6: Add state column to customers table
+    try {
+      const customerTableInfo = db.exec("PRAGMA table_info(customers)");
+      const hasStateColumn = customerTableInfo[0]?.values.some(
+        (row) => row[1] === "state",
+      );
+      if (!hasStateColumn) {
+        console.log("Adding state column to customers table...");
+        db.run("ALTER TABLE customers ADD COLUMN state TEXT");
+        console.log("State column added successfully");
+      }
+    } catch (error) {
+      console.log("State column migration skipped:", error.message);
+    }
   } catch (error) {
     console.error("❌ Error running migrations:", error);
   }

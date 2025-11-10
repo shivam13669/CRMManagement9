@@ -92,7 +92,27 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Fetch current user's full email from auth
+  const [userEmail, setUserEmail] = useState<string>("");
+
   useEffect(() => {
+    // Get user email from API
+    const fetchUserEmail = async () => {
+      try {
+        const response = await fetch("/api/auth/profile", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserEmail(data.user?.email || "");
+        }
+      } catch (e) {
+        console.error("Failed to fetch user profile", e);
+      }
+    };
+    fetchUserEmail();
     fetchAdmins();
   }, []);
 
@@ -163,7 +183,10 @@ export default function AdminPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (currentUser?.role !== "admin") {
+  if (
+    currentUser?.role !== "admin" ||
+    (userEmail && userEmail !== "admin179e@gmail.com")
+  ) {
     return (
       <Layout>
         <Card className="border-red-200 bg-red-50">
@@ -173,12 +196,13 @@ export default function AdminPage() {
               Access Denied
             </CardTitle>
             <CardDescription>
-              This page is only accessible to administrators.
+              This page is only accessible to the system administrator.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600">
-              You do not have permission to access this page.
+              Only the central system administrator (admin179e@gmail.com) can
+              manage admin users.
             </p>
           </CardContent>
         </Card>

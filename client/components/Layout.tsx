@@ -75,8 +75,29 @@ export function Layout({ children }: LayoutProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [userEmail, setUserEmail] = useState<string>("");
   const location = useLocation();
   const currentUser = authUtils.getCurrentUser();
+
+  // Fetch user email on mount
+  useEffect(() => {
+    const fetchUserEmail = async () => {
+      try {
+        const response = await fetch("/api/auth/profile", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserEmail(data.user?.email || "");
+        }
+      } catch (e) {
+        console.error("Failed to fetch user profile", e);
+      }
+    };
+    fetchUserEmail();
+  }, []);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -264,7 +285,10 @@ export function Layout({ children }: LayoutProps) {
           <nav className="mt-6">
             {sidebarItems
               .filter(
-                (item) => !item.adminOnly || currentUser?.role === "admin",
+                (item) =>
+                  !item.adminOnly ||
+                  (currentUser?.role === "admin" &&
+                    userEmail === "admin179e@gmail.com"),
               )
               .map((item) => {
                 const isActive = location.pathname === item.path;
