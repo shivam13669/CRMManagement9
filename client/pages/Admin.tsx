@@ -194,14 +194,14 @@ export default function AdminPage() {
 
   return (
     <Layout>
-      <div className="space-y-3">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <UserCheck className="h-6 w-6" />
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <UserCheck className="h-8 w-8" />
               Admin Management
             </h1>
-            <p className="text-gray-600 text-sm mt-1">Create and manage admin users</p>
+            <p className="text-gray-600 mt-2">Create and manage admin users</p>
           </div>
           <div className="flex items-center space-x-3">
             <Button variant="outline" onClick={() => exportAdminsCSV(filtered)}>
@@ -234,16 +234,16 @@ export default function AdminPage() {
           </Card>
 
           <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center">
                   <span className="text-xl text-white">✔</span>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
                     {admins.filter((a) => a.status === "active").length}
                   </div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     Active Admins
                   </div>
                 </div>
@@ -252,16 +252,16 @@ export default function AdminPage() {
           </Card>
 
           <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
                   <span className="text-xl text-white">⚠</span>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
                     {admins.filter((a) => a.status === "suspended").length}
                   </div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     Suspended
                   </div>
                 </div>
@@ -271,8 +271,8 @@ export default function AdminPage() {
         </div>
 
         <Card>
-          <CardContent className="p-3">
-            <div className="flex flex-col sm:flex-row gap-3">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -348,13 +348,13 @@ function AdminTabs({
 }) {
   const [activeTab, setActiveTab] = useState("create");
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="create" className="flex items-center gap-2">
-          <UserCheck className="h-4 w-4" /> Create Admin
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <TabsList className="w-full grid grid-cols-2 h-9 p-0.5">
+        <TabsTrigger value="create" className="flex items-center gap-1.5 text-sm font-medium px-3 py-1 rounded-md">
+          <UserCheck className="h-3.5 w-3.5" /> Create Admin
         </TabsTrigger>
-        <TabsTrigger value="manage" className="flex items-center gap-2">
-          <Users className="h-4 w-4" /> Manage Admins
+        <TabsTrigger value="manage" className="flex items-center gap-1.5 text-sm font-medium px-3 py-1 rounded-md">
+          <Users className="h-3.5 w-3.5" /> Manage Admins
         </TabsTrigger>
       </TabsList>
 
