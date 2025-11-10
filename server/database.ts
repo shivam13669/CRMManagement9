@@ -132,6 +132,19 @@ function createTables(): void {
       )
     `);
 
+    // Admin metadata - stores state and district for admins
+    db.run(`
+      CREATE TABLE IF NOT EXISTS admin_metadata (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL UNIQUE,
+        state TEXT,
+        district TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      )
+    `);
+
     // Customers table
     db.run(`
       CREATE TABLE IF NOT EXISTS customers (
@@ -387,7 +400,7 @@ function createTables(): void {
 
 async function runMigrations(): Promise<void> {
   try {
-    console.log("🔄 Running database migrations...");
+    console.log("���� Running database migrations...");
 
     // Migration 1: Add status column to users table
     try {
