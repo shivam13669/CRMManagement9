@@ -279,7 +279,16 @@ export default function AdminPage() {
   );
 }
 
-function AdminTabs() {
+function AdminTabs({admins, fetchAdmins, filtered, search, setSearch, statusFilter, setStatusFilter, exportAdminsCSV}:{
+  admins: AdminUser[];
+  fetchAdmins: () => Promise<void> | void;
+  filtered: AdminUser[];
+  search: string;
+  setSearch: (s:string) => void;
+  statusFilter: string;
+  setStatusFilter: (s:string) => void;
+  exportAdminsCSV: (items: AdminUser[]) => void;
+}) {
   const [activeTab, setActiveTab] = useState("create");
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -297,7 +306,7 @@ function AdminTabs() {
       </TabsContent>
 
       <TabsContent value="manage">
-        <ManageAdmins />
+        <ManageAdmins admins={admins} fetchAdmins={fetchAdmins} filtered={filtered} search={search} setSearch={setSearch} statusFilter={statusFilter} setStatusFilter={setStatusFilter} exportAdminsCSV={exportAdminsCSV} />
       </TabsContent>
     </Tabs>
   );
