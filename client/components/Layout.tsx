@@ -37,7 +37,7 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { icon: Activity, label: "Dashboard", path: "/admin-dashboard" },
-  { icon: Layers, label: "Admin", path: "/admin", adminOnly: true },
+  { icon: Layers, label: "Admin Management", path: "/admin", adminOnly: true },
   { icon: Users, label: "Customers", path: "/customers" },
   { icon: Users, label: "Doctors", path: "/doctors" },
   { icon: Building2, label: "Hospitals", path: "/hospital-management" },
