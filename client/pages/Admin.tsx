@@ -222,10 +222,10 @@ export default function AdminPage() {
                   <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
+                  <div className="text-lg font-bold text-gray-900">
                     {admins.length}
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-600">
+                  <div className="text-xs text-gray-600">
                     Total Admins
                   </div>
                 </div>
