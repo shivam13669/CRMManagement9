@@ -328,16 +328,22 @@ function createTables(): void {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         hospital_user_id INTEGER NOT NULL,
         customer_user_id INTEGER,
+        admin_user_id INTEGER,
+        ambulance_request_id INTEGER,
         service_type TEXT NOT NULL,
         description TEXT NOT NULL,
-        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'in_progress', 'completed', 'cancelled')),
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled')),
         priority TEXT DEFAULT 'normal' CHECK(priority IN ('low', 'normal', 'high', 'critical')),
         assigned_staff_id INTEGER,
+        hospital_response TEXT,
+        hospital_response_at DATETIME,
         notes TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (hospital_user_id) REFERENCES users (id) ON DELETE CASCADE,
         FOREIGN KEY (customer_user_id) REFERENCES users (id) ON DELETE SET NULL,
+        FOREIGN KEY (admin_user_id) REFERENCES users (id) ON DELETE SET NULL,
+        FOREIGN KEY (ambulance_request_id) REFERENCES ambulance_requests (id) ON DELETE CASCADE,
         FOREIGN KEY (assigned_staff_id) REFERENCES users (id) ON DELETE SET NULL
       )
     `);
