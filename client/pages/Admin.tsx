@@ -312,13 +312,17 @@ function AdminTabs({admins, fetchAdmins, filtered, search, setSearch, statusFilt
   );
 }
 
-function ManageAdmins() {
-  const [admins, setAdmins] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusFilter, setStatusFilter, exportAdminsCSV}:{
+  admins: AdminUser[];
+  fetchAdmins: () => Promise<void> | void;
+  filtered: AdminUser[];
+  search: string;
+  setSearch: (s:string) => void;
+  statusFilter: string;
+  setStatusFilter: (s:string) => void;
+  exportAdminsCSV: (items: AdminUser[]) => void;
+}) {
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [pwdUser, setPwdUser] = useState<AdminUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -326,68 +330,11 @@ function ManageAdmins() {
   const [savingPwd, setSavingPwd] = useState(false);
 
   useEffect(() => {
-    fetchAdmins();
-  }, []);
-
-  useEffect(() => {
     if (alert) {
       const t = setTimeout(() => setAlert(null), 4000);
       return () => clearTimeout(t);
     }
   }, [alert]);
-
-  const fetchAdmins = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/admin/admin-users", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAdmins(data.users || []);
-      } else {
-        setAlert({ type: "error", message: "Failed to load admins" });
-      }
-    } catch (e) {
-      setAlert({ type: "error", message: "Network error" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return admins.filter((u) => {
-      const matchesSearch =
-        u.full_name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.username.toLowerCase().includes(q);
-
-      const matchesStatus =
-        statusFilter === "all" ? true : u.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [admins, search, statusFilter]);
-
-  const exportAdminsCSV = (items: AdminUser[]) => {
-    if (!items || items.length === 0) return;
-    const headers = ["id", "full_name", "username", "email", "status", "created_at"];
-    const rows = items.map((it) => [it.id, it.full_name, it.username, it.email, it.status, it.created_at]);
-    const csvContent = [headers, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "admins_export.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
 
   const submitPassword = async () => {
     if (!pwdUser) return;
@@ -423,20 +370,14 @@ function ManageAdmins() {
       setPwdUser(null);
       setNewPassword("");
       setConfirmPassword("");
+      // Refresh parent list
+      fetchAdmins();
     } catch (e) {
       setAlert({ type: "error", message: "Network error" });
     } finally {
       setSavingPwd(false);
     }
   };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-center">Loading...</CardContent>
-      </Card>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -455,91 +396,6 @@ function ManageAdmins() {
           <CardDescription>View and manage administrator accounts</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900">{admins.length}</div>
-                    <div className="text-xs sm:text-sm text-gray-600">Total Admins</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                    <span className="text-xl text-white">✔</span>
-                  </div>
-                  <div>
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900">{admins.filter(a => a.status === 'active').length}</div>
-                    <div className="text-xs sm:text-sm text-gray-600">Active Admins</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
-                    <span className="text-xl text-white">⚠</span>
-                  </div>
-                  <div>
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900">{admins.filter(a => a.status === 'suspended').length}</div>
-                    <div className="text-xs sm:text-sm text-gray-600">Suspended</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Search / Filter / Export */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search by name, email, or username..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">Filter</Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48">
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">Status</label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="suspended">Suspended</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <Button variant="outline" onClick={() => exportAdminsCSV(filtered)}>
-              <Download className="w-4 h-4 mr-2" /> Export List
-            </Button>
-
-            <Button variant="outline" onClick={fetchAdmins}>Refresh</Button>
-          </div>
-
           <div className="rounded-md border overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -562,6 +418,7 @@ function ManageAdmins() {
                           <div>
                             <div className="font-medium text-gray-900">{user.full_name}</div>
                             <div className="text-sm text-gray-500">{user.email}</div>
+                            {user.phone && <div className="text-xs text-gray-400">{user.phone}</div>}
                           </div>
                         </div>
                       </td>
@@ -609,6 +466,12 @@ function ManageAdmins() {
                                           <h3 className="font-medium mb-2">Personal Information</h3>
                                           <div className="space-y-2 text-sm">
                                             <div className="flex items-center space-x-2">
+                                              <Users className="w-4 h-4 text-gray-400" />
+                                              <span>{selectedUser.full_name}</span>
+                                            </div>
+
+                                            <div className="flex items-center space-x-2">
+                                              <Users className="w-4 h-4 text-gray-400" />
                                               <Users className="w-4 h-4 text-gray-400" />
                                               <span>{selectedUser.full_name}</span>
                                             </div>
