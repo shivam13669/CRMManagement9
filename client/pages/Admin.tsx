@@ -49,6 +49,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../components/ui/popover";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { authUtils } from "../lib/api";
 import {
