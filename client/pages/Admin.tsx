@@ -75,6 +75,7 @@ import {
   XCircle,
   Search,
   Download,
+  Filter,
 } from "lucide-react";
 
 interface AdminUser {
@@ -269,42 +270,47 @@ export default function AdminPage() {
           </Card>
         </div>
 
-        <div className="mt-4">
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search by name, email, or username..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  Filter
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48">
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">Status</label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="suspended">Suspended</SelectItem>
-                    </SelectContent>
-                  </Select>
+        <Card>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search by name, email, or username..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
+              </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Status</label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="suspended">Suspended</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </CardContent>
+        </Card>
 
         <AdminTabs
           admins={admins}
