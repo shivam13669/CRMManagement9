@@ -37,6 +37,7 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { icon: Activity, label: "Dashboard", path: "/admin-dashboard" },
+  { icon: Layers, label: "Admin", path: "/admin", adminOnly: true },
   { icon: Users, label: "Customers", path: "/customers" },
   { icon: Users, label: "Doctors", path: "/doctors" },
   { icon: Building2, label: "Hospitals", path: "/hospital-management" },
@@ -48,7 +49,6 @@ const sidebarItems: SidebarItem[] = [
     path: "/pending-registrations",
   },
   { icon: Shield, label: "User Management", path: "/user-management" },
-  { icon: Layers, label: "Admin", path: "/admin", adminOnly: true },
   { icon: MessageSquare, label: "Feedback", path: "/feedback-management" },
   { icon: CreditCard, label: "Memberships", path: "/memberships" },
   { icon: Truck, label: "Ambulance Management", path: "/ambulance-management" },
