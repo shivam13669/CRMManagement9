@@ -33,6 +33,13 @@ import {
   handleUpdateAmbulanceStatus,
 } from "./routes/ambulance";
 import {
+  handleForwardAmbulanceToHospital,
+  handleGetHospitalServiceRequests,
+  handleHospitalAcceptRequest,
+  handleHospitalRejectRequest,
+  handleGetHospitalsByState,
+} from "./routes/ambulance-hospital";
+import {
   handleCreateAppointment,
   handleGetAppointments,
   handleUpdateAppointment,
