@@ -9,6 +9,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminPage from "./pages/Admin";
 import PendingRegistrations from "./pages/PendingRegistrations";
 import TestPendingRegistration from "./pages/TestPendingRegistration";
 import CustomerDashboard from "./pages/CustomerDashboard";
@@ -82,6 +83,7 @@ function App() {
             {/* Admin Dashboard and main app pages */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route
               path="/pending-registrations"
               element={<PendingRegistrations />}
