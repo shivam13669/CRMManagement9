@@ -19,6 +19,7 @@ import {
   Shield,
   MessageSquare,
   Building2,
+  UserCog,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { authUtils } from "../lib/api";
