@@ -75,6 +75,7 @@ export function Layout({ children }: LayoutProps) {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
+  const currentUser = authUtils.getCurrentUser();
 
   // Redirect to login if not authenticated
   useEffect(() => {
