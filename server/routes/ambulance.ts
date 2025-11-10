@@ -290,7 +290,7 @@ export const handleGetCustomerAmbulanceRequests: RequestHandler = async (
       `🔍 Querying ambulance_requests WHERE customer_user_id = ${userId}`,
     );
 
-    // First get all ambulance requests, then filter in memory
+    // First get all ambulance requests with hospital response info, then filter in memory
     const allResult = db.exec(`
       SELECT
         ar.id,
@@ -306,10 +306,18 @@ export const handleGetCustomerAmbulanceRequests: RequestHandler = async (
         ar.notes,
         ar.created_at,
         ar.updated_at,
+        ar.forwarded_to_hospital_id,
         staff.full_name as assigned_staff_name,
-        staff.phone as assigned_staff_phone
+        staff.phone as assigned_staff_phone,
+        hospital.hospital_name as forwarded_hospital_name,
+        hsr.status as hospital_request_status,
+        hsr.hospital_response,
+        hsr.hospital_response_at
       FROM ambulance_requests ar
       LEFT JOIN users staff ON ar.assigned_staff_id = staff.id
+      LEFT JOIN hospital_service_requests hsr ON ar.hospital_request_id = hsr.id
+      LEFT JOIN hospitals h ON hsr.hospital_user_id = h.user_id
+      LEFT JOIN users hospital ON h.user_id = hospital.id
       ORDER BY ar.created_at DESC
     `);
 
