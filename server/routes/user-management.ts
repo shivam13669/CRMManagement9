@@ -9,6 +9,9 @@ import {
   createDoctor,
   getUserByEmail,
   getUserByPhone,
+  getAdminUsers,
+  getUserById,
+  updateUserPasswordById,
 } from "../database";
 import bcrypt from "bcryptjs";
 
