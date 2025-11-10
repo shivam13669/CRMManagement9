@@ -242,7 +242,7 @@ export const handleHospitalAcceptRequest: RequestHandler = async (req, res) => {
       [notes || null, serviceRequestId],
     );
 
-    // Update ambulance request status
+    // Update ambulance request status to assigned (hospital accepted)
     if (ambulanceRequestId) {
       db.run(
         `UPDATE ambulance_requests
@@ -251,6 +251,10 @@ export const handleHospitalAcceptRequest: RequestHandler = async (req, res) => {
         [ambulanceRequestId],
       );
     }
+
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
 
     console.log(
       `✅ Hospital ${userId} accepted service request ${serviceRequestId}`,
