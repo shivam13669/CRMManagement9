@@ -83,6 +83,7 @@ function App() {
             {/* Admin Dashboard and main app pages */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route
               path="/pending-registrations"
               element={<PendingRegistrations />}
