@@ -53,6 +53,7 @@ import AmbulanceManagement from "./pages/AmbulanceManagement";
 import StaffAmbulanceManagement from "./pages/StaffAmbulanceManagement";
 import HospitalDashboard from "./pages/HospitalDashboard";
 import HospitalManagement from "./pages/HospitalManagement";
+import HospitalServiceRequests from "./pages/HospitalServiceRequests";
 import HospitalAmbulances from "./pages/HospitalAmbulances";
 import HospitalStaff from "./pages/HospitalStaff";
 import HospitalInventory from "./pages/HospitalInventory";
