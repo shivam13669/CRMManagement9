@@ -9,6 +9,9 @@ import {
   createDoctor,
   getUserByEmail,
   getUserByPhone,
+  getAdminUsers,
+  getUserById,
+  updateUserPasswordById,
 } from "../database";
 import bcrypt from "bcryptjs";
 
@@ -71,6 +74,82 @@ export const handleGetUsersByRole: RequestHandler = async (req, res) => {
     res
       .status(500)
       .json({ error: "Internal server error while fetching users" });
+  }
+};
+
+// Get admin users (admin only)
+export const handleGetAdminUsers: RequestHandler = async (req, res) => {
+  try {
+    const { role } = (req as any).user;
+    if (role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized. Admin access required." });
+    }
+    const users = getAdminUsers();
+    res.json({
+      users,
+      total: users.length,
+      message: "Admins retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Get admin users error:", error);
+    res
+      .status(500)
+      .json({ error: "Internal server error while fetching admins" });
+  }
+};
+
+// Admin set user password (no current password required)
+export const handleAdminSetUserPassword: RequestHandler = async (req, res) => {
+  try {
+    const { role } = (req as any).user;
+    const { userId } = req.params;
+    const { newPassword, confirmPassword } = req.body || {};
+
+    if (role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized. Admin access required." });
+    }
+
+    const id = parseInt(userId);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    if (!newPassword || !confirmPassword) {
+      return res
+        .status(400)
+        .json({ error: "New password and confirm password are required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match" });
+    }
+
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 characters long" });
+    }
+
+    const user = getUserById(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const ok = await updateUserPasswordById(id, newPassword);
+    if (!ok) {
+      return res.status(500).json({ error: "Failed to update password" });
+    }
+
+    res.json({ message: "Password updated successfully", userId: id });
+  } catch (error) {
+    console.error("Admin set user password error:", error);
+    res
+      .status(500)
+      .json({ error: "Internal server error while updating password" });
   }
 };
 

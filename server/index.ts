@@ -51,6 +51,8 @@ import {
   handleReactivateUser,
   handleDeleteUser,
   handleAddDoctor,
+  handleGetAdminUsers,
+  handleAdminSetUserPassword,
 } from "./routes/user-management";
 import {
   handleCreateFeedback,
@@ -132,11 +134,7 @@ export async function createServer() {
     authenticateToken,
     handleChangePassword,
   );
-  app.post(
-    "/api/admin/create-admin",
-    authenticateToken,
-    handleCreateAdminUser,
-  );
+  app.post("/api/admin/create-admin", authenticateToken, handleCreateAdminUser);
 
   // Hospital routes
   app.post(
@@ -221,6 +219,13 @@ export async function createServer() {
     "/api/admin/users/:userRole",
     authenticateToken,
     handleGetUsersByRole,
+  );
+  // Admin management specific
+  app.get("/api/admin/admin-users", authenticateToken, handleGetAdminUsers);
+  app.post(
+    "/api/admin/users/:userId/set-password",
+    authenticateToken,
+    handleAdminSetUserPassword,
   );
   app.post(
     "/api/admin/users/:userId/suspend",
