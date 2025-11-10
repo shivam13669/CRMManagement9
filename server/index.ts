@@ -134,11 +134,7 @@ export async function createServer() {
     authenticateToken,
     handleChangePassword,
   );
-  app.post(
-    "/api/admin/create-admin",
-    authenticateToken,
-    handleCreateAdminUser,
-  );
+  app.post("/api/admin/create-admin", authenticateToken, handleCreateAdminUser);
 
   // Hospital routes
   app.post(
@@ -225,11 +221,7 @@ export async function createServer() {
     handleGetUsersByRole,
   );
   // Admin management specific
-  app.get(
-    "/api/admin/admin-users",
-    authenticateToken,
-    handleGetAdminUsers,
-  );
+  app.get("/api/admin/admin-users", authenticateToken, handleGetAdminUsers);
   app.post(
     "/api/admin/users/:userId/set-password",
     authenticateToken,

@@ -105,7 +105,9 @@ export default function AdminPage() {
     try {
       setLoading(true);
       const response = await fetch("/api/admin/admin-users", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
       });
       if (response.ok) {
         const data = await response.json();
@@ -126,7 +128,8 @@ export default function AdminPage() {
         u.email.toLowerCase().includes(q) ||
         u.username.toLowerCase().includes(q);
 
-      const matchesStatus = statusFilter === "all" ? true : u.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" ? true : u.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -134,8 +137,22 @@ export default function AdminPage() {
 
   const exportAdminsCSV = (items: AdminUser[]) => {
     if (!items || items.length === 0) return;
-    const headers = ["id", "full_name", "username", "email", "status", "created_at"];
-    const rows = items.map((it) => [it.id, it.full_name, it.username, it.email, it.status, it.created_at]);
+    const headers = [
+      "id",
+      "full_name",
+      "username",
+      "email",
+      "status",
+      "created_at",
+    ];
+    const rows = items.map((it) => [
+      it.id,
+      it.full_name,
+      it.username,
+      it.email,
+      it.status,
+      it.created_at,
+    ]);
     const csvContent = [headers, ...rows]
       .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
       .join("\n");
@@ -189,7 +206,9 @@ export default function AdminPage() {
             <Button variant="outline" onClick={() => exportAdminsCSV(filtered)}>
               <Download className="w-4 h-4 mr-2" /> Export List
             </Button>
-            <Button variant="outline" onClick={fetchAdmins}>Refresh</Button>
+            <Button variant="outline" onClick={fetchAdmins}>
+              Refresh
+            </Button>
           </div>
         </div>
 
@@ -202,8 +221,12 @@ export default function AdminPage() {
                   <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">{admins.length}</div>
-                  <div className="text-xs sm:text-sm text-gray-600">Total Admins</div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
+                    {admins.length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    Total Admins
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -216,8 +239,12 @@ export default function AdminPage() {
                   <span className="text-xl text-white">✔</span>
                 </div>
                 <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">{admins.filter(a => a.status === 'active').length}</div>
-                  <div className="text-xs sm:text-sm text-gray-600">Active Admins</div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
+                    {admins.filter((a) => a.status === "active").length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    Active Admins
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -230,8 +257,12 @@ export default function AdminPage() {
                   <span className="text-xl text-white">⚠</span>
                 </div>
                 <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">{admins.filter(a => a.status === 'suspended').length}</div>
-                  <div className="text-xs sm:text-sm text-gray-600">Suspended</div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
+                    {admins.filter((a) => a.status === "suspended").length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    Suspended
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -252,7 +283,9 @@ export default function AdminPage() {
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">Filter</Button>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  Filter
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-48">
                 <div className="space-y-3">
@@ -273,20 +306,38 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <AdminTabs admins={admins} fetchAdmins={fetchAdmins} filtered={filtered} search={search} setSearch={setSearch} statusFilter={statusFilter} setStatusFilter={setStatusFilter} exportAdminsCSV={exportAdminsCSV} />
+        <AdminTabs
+          admins={admins}
+          fetchAdmins={fetchAdmins}
+          filtered={filtered}
+          search={search}
+          setSearch={setSearch}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          exportAdminsCSV={exportAdminsCSV}
+        />
       </div>
     </Layout>
   );
 }
 
-function AdminTabs({admins, fetchAdmins, filtered, search, setSearch, statusFilter, setStatusFilter, exportAdminsCSV}:{
+function AdminTabs({
+  admins,
+  fetchAdmins,
+  filtered,
+  search,
+  setSearch,
+  statusFilter,
+  setStatusFilter,
+  exportAdminsCSV,
+}: {
   admins: AdminUser[];
   fetchAdmins: () => Promise<void> | void;
   filtered: AdminUser[];
   search: string;
-  setSearch: (s:string) => void;
+  setSearch: (s: string) => void;
   statusFilter: string;
-  setStatusFilter: (s:string) => void;
+  setStatusFilter: (s: string) => void;
   exportAdminsCSV: (items: AdminUser[]) => void;
 }) {
   const [activeTab, setActiveTab] = useState("create");
@@ -306,23 +357,44 @@ function AdminTabs({admins, fetchAdmins, filtered, search, setSearch, statusFilt
       </TabsContent>
 
       <TabsContent value="manage">
-        <ManageAdmins admins={admins} fetchAdmins={fetchAdmins} filtered={filtered} search={search} setSearch={setSearch} statusFilter={statusFilter} setStatusFilter={setStatusFilter} exportAdminsCSV={exportAdminsCSV} />
+        <ManageAdmins
+          admins={admins}
+          fetchAdmins={fetchAdmins}
+          filtered={filtered}
+          search={search}
+          setSearch={setSearch}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          exportAdminsCSV={exportAdminsCSV}
+        />
       </TabsContent>
     </Tabs>
   );
 }
 
-function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusFilter, setStatusFilter, exportAdminsCSV}:{
+function ManageAdmins({
+  admins,
+  fetchAdmins,
+  filtered,
+  search,
+  setSearch,
+  statusFilter,
+  setStatusFilter,
+  exportAdminsCSV,
+}: {
   admins: AdminUser[];
   fetchAdmins: () => Promise<void> | void;
   filtered: AdminUser[];
   search: string;
-  setSearch: (s:string) => void;
+  setSearch: (s: string) => void;
   statusFilter: string;
-  setStatusFilter: (s:string) => void;
+  setStatusFilter: (s: string) => void;
   exportAdminsCSV: (items: AdminUser[]) => void;
 }) {
-  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [pwdUser, setPwdUser] = useState<AdminUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -343,7 +415,10 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
       return;
     }
     if (newPassword.length < 6) {
-      setAlert({ type: "error", message: "Password must be at least 6 characters" });
+      setAlert({
+        type: "error",
+        message: "Password must be at least 6 characters",
+      });
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -363,7 +438,10 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setAlert({ type: "error", message: data.error || "Failed to update password" });
+        setAlert({
+          type: "error",
+          message: data.error || "Failed to update password",
+        });
         return;
       }
       setAlert({ type: "success", message: "Password updated successfully" });
@@ -383,7 +461,11 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
     <div className="space-y-6">
       {alert && (
         <Alert variant={alert.type === "error" ? "destructive" : "default"}>
-          {alert.type === "success" ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+          {alert.type === "success" ? (
+            <CheckCircle className="h-4 w-4" />
+          ) : (
+            <XCircle className="h-4 w-4" />
+          )}
           <AlertDescription>{alert.message}</AlertDescription>
         </Alert>
       )}
@@ -393,17 +475,27 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" /> Admin Users
           </CardTitle>
-          <CardDescription>View and manage administrator accounts</CardDescription>
+          <CardDescription>
+            View and manage administrator accounts
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="text-left p-4 font-medium text-gray-900">User</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Status</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Joined</th>
-                  <th className="text-right p-4 font-medium text-gray-900">Actions</th>
+                  <th className="text-left p-4 font-medium text-gray-900">
+                    User
+                  </th>
+                  <th className="text-left p-4 font-medium text-gray-900">
+                    Status
+                  </th>
+                  <th className="text-left p-4 font-medium text-gray-900">
+                    Joined
+                  </th>
+                  <th className="text-right p-4 font-medium text-gray-900">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -416,20 +508,38 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                             <Users className="w-5 h-5 text-white" />
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900">{user.full_name}</div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
-                            {user.phone && <div className="text-xs text-gray-400">{user.phone}</div>}
+                            <div className="font-medium text-gray-900">
+                              {user.full_name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {user.email}
+                            </div>
+                            {user.phone && (
+                              <div className="text-xs text-gray-400">
+                                {user.phone}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
                       <td className="p-4">
-                        <Badge className={user.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                        <Badge
+                          className={
+                            user.status === "active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }
+                        >
                           {user.status === "active" ? "Active" : "Suspended"}
                         </Badge>
                       </td>
                       <td className="p-4">
-                        <div className="text-sm text-gray-900">{new Date(user.created_at).toLocaleDateString()}</div>
-                        <div className="text-xs text-gray-500">{new Date(user.created_at).toLocaleTimeString()}</div>
+                        <div className="text-sm text-gray-900">
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(user.created_at).toLocaleTimeString()}
+                        </div>
                       </td>
                       <td className="p-4">
                         <div className="flex justify-end">
@@ -448,14 +558,16 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                                       setSelectedUser(user);
                                     }}
                                   >
-                                    <Eye className="w-4 h-4 mr-2" /> View Details
+                                    <Eye className="w-4 h-4 mr-2" /> View
+                                    Details
                                   </DropdownMenuItem>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-2xl">
                                   <DialogHeader>
                                     <DialogTitle>User Details</DialogTitle>
                                     <DialogDescription>
-                                      Complete information about {selectedUser?.full_name}
+                                      Complete information about{" "}
+                                      {selectedUser?.full_name}
                                     </DialogDescription>
                                   </DialogHeader>
 
@@ -463,22 +575,30 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                                     <div className="space-y-6">
                                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <div>
-                                          <h3 className="font-medium mb-2">Personal Information</h3>
+                                          <h3 className="font-medium mb-2">
+                                            Personal Information
+                                          </h3>
                                           <div className="space-y-2 text-sm">
                                             <div className="flex items-center space-x-2">
                                               <Users className="w-4 h-4 text-gray-400" />
-                                              <span>{selectedUser.full_name}</span>
+                                              <span>
+                                                {selectedUser.full_name}
+                                              </span>
                                             </div>
 
                                             <div className="flex items-center space-x-2">
                                               <Users className="w-4 h-4 text-gray-400" />
                                               <Users className="w-4 h-4 text-gray-400" />
-                                              <span>{selectedUser.full_name}</span>
+                                              <span>
+                                                {selectedUser.full_name}
+                                              </span>
                                             </div>
 
                                             <div className="flex items-center space-x-2">
                                               <Users className="w-4 h-4 text-gray-400" />
-                                              <span>@{selectedUser.username}</span>
+                                              <span>
+                                                @{selectedUser.username}
+                                              </span>
                                             </div>
 
                                             <div className="flex items-center space-x-2">
@@ -489,56 +609,87 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                                             {selectedUser.phone && (
                                               <div className="flex items-center space-x-2">
                                                 <Users className="w-4 h-4 text-gray-400" />
-                                                <span>{selectedUser.phone}</span>
+                                                <span>
+                                                  {selectedUser.phone}
+                                                </span>
                                               </div>
                                             )}
                                           </div>
                                         </div>
 
                                         <div>
-                                          <h3 className="font-medium mb-2">Account Details</h3>
+                                          <h3 className="font-medium mb-2">
+                                            Account Details
+                                          </h3>
                                           <div className="space-y-2 text-sm">
                                             <div className="flex items-center space-x-2">
                                               <div className="w-4 h-4 flex items-center justify-center">
                                                 <UserCheck className="w-4 h-4" />
                                               </div>
                                               <span>
-                                                Role: {selectedUser.role?.charAt(0)?.toUpperCase() + selectedUser.role?.slice(1)}
+                                                Role:{" "}
+                                                {selectedUser.role
+                                                  ?.charAt(0)
+                                                  ?.toUpperCase() +
+                                                  selectedUser.role?.slice(1)}
                                               </span>
                                             </div>
 
                                             <div className="flex items-center space-x-2">
-                                              {selectedUser.status === "active" ? (
+                                              {selectedUser.status ===
+                                              "active" ? (
                                                 <CheckCircle className="w-4 h-4 text-green-500" />
                                               ) : (
                                                 <XCircle className="w-4 h-4 text-red-500" />
                                               )}
                                               <span>
-                                                Status: {selectedUser.status?.charAt(0)?.toUpperCase() + selectedUser.status?.slice(1)}
+                                                Status:{" "}
+                                                {selectedUser.status
+                                                  ?.charAt(0)
+                                                  ?.toUpperCase() +
+                                                  selectedUser.status?.slice(1)}
                                               </span>
                                             </div>
 
                                             <div className="flex items-center space-x-2">
                                               <Users className="w-4 h-4 text-gray-400" />
-                                              <span>User ID: #{selectedUser.id}</span>
+                                              <span>
+                                                User ID: #{selectedUser.id}
+                                              </span>
                                             </div>
                                           </div>
                                         </div>
                                       </div>
 
                                       <div>
-                                        <h3 className="font-medium mb-2">Account Timeline</h3>
+                                        <h3 className="font-medium mb-2">
+                                          Account Timeline
+                                        </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                           <div className="flex items-center space-x-2">
                                             <Users className="w-4 h-4 text-gray-400" />
                                             <span>
-                                              Created: {new Date(selectedUser.created_at).toLocaleDateString()} at {new Date(selectedUser.created_at).toLocaleTimeString()}
+                                              Created:{" "}
+                                              {new Date(
+                                                selectedUser.created_at,
+                                              ).toLocaleDateString()}{" "}
+                                              at{" "}
+                                              {new Date(
+                                                selectedUser.created_at,
+                                              ).toLocaleTimeString()}
                                             </span>
                                           </div>
                                           <div className="flex items-center space-x-2">
                                             <Users className="w-4 h-4 text-gray-400" />
                                             <span>
-                                              Updated: {new Date(selectedUser.updated_at).toLocaleDateString()} at {new Date(selectedUser.updated_at).toLocaleTimeString()}
+                                              Updated:{" "}
+                                              {new Date(
+                                                selectedUser.updated_at,
+                                              ).toLocaleDateString()}{" "}
+                                              at{" "}
+                                              {new Date(
+                                                selectedUser.updated_at,
+                                              ).toLocaleTimeString()}
                                             </span>
                                           </div>
                                         </div>
@@ -550,13 +701,21 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                                           <Tooltip>
                                             <TooltipTrigger asChild>
                                               <div>
-                                                <Button variant="outline" size="sm" className="flex-1 sm:flex-none" disabled>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  className="flex-1 sm:flex-none"
+                                                  disabled
+                                                >
                                                   <ShieldOff className="w-4 h-4 mr-2" />
                                                   Suspend User
                                                 </Button>
                                               </div>
                                             </TooltipTrigger>
-                                            <TooltipContent>Suspending administrators is not allowed</TooltipContent>
+                                            <TooltipContent>
+                                              Suspending administrators is not
+                                              allowed
+                                            </TooltipContent>
                                           </Tooltip>
                                         </TooltipProvider>
 
@@ -564,13 +723,21 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                                           <Tooltip>
                                             <TooltipTrigger asChild>
                                               <div>
-                                                <Button variant="destructive" size="sm" className="flex-1 sm:flex-none" disabled>
+                                                <Button
+                                                  variant="destructive"
+                                                  size="sm"
+                                                  className="flex-1 sm:flex-none"
+                                                  disabled
+                                                >
                                                   <Trash2 className="w-4 h-4 mr-2" />
                                                   Delete User
                                                 </Button>
                                               </div>
                                             </TooltipTrigger>
-                                            <TooltipContent>Deleting administrators is not allowed</TooltipContent>
+                                            <TooltipContent>
+                                              Deleting administrators is not
+                                              allowed
+                                            </TooltipContent>
                                           </Tooltip>
                                         </TooltipProvider>
                                       </div>
@@ -581,9 +748,12 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
 
                               <DropdownMenuSeparator />
 
-                              <Dialog open={!!pwdUser && pwdUser.id === user.id} onOpenChange={(open) => {
-                                if (!open) setPwdUser(null);
-                              }}>
+                              <Dialog
+                                open={!!pwdUser && pwdUser.id === user.id}
+                                onOpenChange={(open) => {
+                                  if (!open) setPwdUser(null);
+                                }}
+                              >
                                 <DialogTrigger asChild>
                                   <DropdownMenuItem
                                     onSelect={(e) => {
@@ -591,14 +761,17 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                                       setPwdUser(user);
                                     }}
                                   >
-                                    <KeyRound className="w-4 h-4 mr-2" /> Change Password
+                                    <KeyRound className="w-4 h-4 mr-2" /> Change
+                                    Password
                                   </DropdownMenuItem>
                                 </DialogTrigger>
                                 <DialogContent>
                                   <DialogHeader>
                                     <DialogTitle>Change Password</DialogTitle>
                                     <DialogDescription>
-                                      Set a new password for {pwdUser?.full_name}. Current password is not required.
+                                      Set a new password for{" "}
+                                      {pwdUser?.full_name}. Current password is
+                                      not required.
                                     </DialogDescription>
                                   </DialogHeader>
                                   <div className="space-y-3">
@@ -606,17 +779,27 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                                       type="password"
                                       placeholder="New password (min 6 characters)"
                                       value={newPassword}
-                                      onChange={(e) => setNewPassword(e.target.value)}
+                                      onChange={(e) =>
+                                        setNewPassword(e.target.value)
+                                      }
                                     />
                                     <Input
                                       type="password"
                                       placeholder="Confirm new password"
                                       value={confirmPassword}
-                                      onChange={(e) => setConfirmPassword(e.target.value)}
+                                      onChange={(e) =>
+                                        setConfirmPassword(e.target.value)
+                                      }
                                     />
                                     <div className="flex gap-2 pt-2">
-                                      <Button onClick={submitPassword} disabled={savingPwd} className="flex-1">
-                                        {savingPwd ? "Saving..." : "Update Password"}
+                                      <Button
+                                        onClick={submitPassword}
+                                        disabled={savingPwd}
+                                        className="flex-1"
+                                      >
+                                        {savingPwd
+                                          ? "Saving..."
+                                          : "Update Password"}
                                       </Button>
                                       <Button
                                         variant="outline"
@@ -641,11 +824,14 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                                   <TooltipTrigger asChild>
                                     <div>
                                       <DropdownMenuItem disabled>
-                                        <ShieldOff className="w-4 h-4 mr-2" /> Suspend Admin
+                                        <ShieldOff className="w-4 h-4 mr-2" />{" "}
+                                        Suspend Admin
                                       </DropdownMenuItem>
                                     </div>
                                   </TooltipTrigger>
-                                  <TooltipContent>Not allowed for admin accounts</TooltipContent>
+                                  <TooltipContent>
+                                    Not allowed for admin accounts
+                                  </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
 
@@ -653,12 +839,18 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <div>
-                                      <DropdownMenuItem disabled className="text-red-600 focus:text-red-600">
-                                        <Trash2 className="w-4 h-4 mr-2" /> Delete Admin
+                                      <DropdownMenuItem
+                                        disabled
+                                        className="text-red-600 focus:text-red-600"
+                                      >
+                                        <Trash2 className="w-4 h-4 mr-2" />{" "}
+                                        Delete Admin
                                       </DropdownMenuItem>
                                     </div>
                                   </TooltipTrigger>
-                                  <TooltipContent>Not allowed for admin accounts</TooltipContent>
+                                  <TooltipContent>
+                                    Not allowed for admin accounts
+                                  </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
                             </DropdownMenuContent>
@@ -677,7 +869,9 @@ function ManageAdmins({admins, fetchAdmins, filtered, search, setSearch, statusF
               </tbody>
             </table>
           </div>
-          <div className="text-sm text-gray-700 mt-4">Showing {filtered.length} of {admins.length} admins</div>
+          <div className="text-sm text-gray-700 mt-4">
+            Showing {filtered.length} of {admins.length} admins
+          </div>
         </CardContent>
       </Card>
     </div>

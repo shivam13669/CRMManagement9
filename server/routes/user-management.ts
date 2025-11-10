@@ -87,7 +87,11 @@ export const handleGetAdminUsers: RequestHandler = async (req, res) => {
         .json({ error: "Unauthorized. Admin access required." });
     }
     const users = getAdminUsers();
-    res.json({ users, total: users.length, message: "Admins retrieved successfully" });
+    res.json({
+      users,
+      total: users.length,
+      message: "Admins retrieved successfully",
+    });
   } catch (error) {
     console.error("Get admin users error:", error);
     res
@@ -115,7 +119,9 @@ export const handleAdminSetUserPassword: RequestHandler = async (req, res) => {
     }
 
     if (!newPassword || !confirmPassword) {
-      return res.status(400).json({ error: "New password and confirm password are required" });
+      return res
+        .status(400)
+        .json({ error: "New password and confirm password are required" });
     }
 
     if (newPassword !== confirmPassword) {
@@ -123,7 +129,9 @@ export const handleAdminSetUserPassword: RequestHandler = async (req, res) => {
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ error: "Password must be at least 6 characters long" });
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 characters long" });
     }
 
     const user = getUserById(id);
@@ -139,7 +147,9 @@ export const handleAdminSetUserPassword: RequestHandler = async (req, res) => {
     res.json({ message: "Password updated successfully", userId: id });
   } catch (error) {
     console.error("Admin set user password error:", error);
-    res.status(500).json({ error: "Internal server error while updating password" });
+    res
+      .status(500)
+      .json({ error: "Internal server error while updating password" });
   }
 };
 

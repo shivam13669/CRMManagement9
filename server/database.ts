@@ -1406,7 +1406,12 @@ export function getAdminUsers(): any[] {
 export function getUserById(userId: number): User | undefined {
   try {
     const result = db.exec("SELECT * FROM users WHERE id = ?", [userId]);
-    if (!result || result.length === 0 || !result[0] || result[0].values.length === 0) {
+    if (
+      !result ||
+      result.length === 0 ||
+      !result[0] ||
+      result[0].values.length === 0
+    ) {
       return undefined;
     }
     const columns = result[0].columns;
