@@ -92,7 +92,27 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Fetch current user's full email from auth
+  const [userEmail, setUserEmail] = useState<string>("");
+
   useEffect(() => {
+    // Get user email from API
+    const fetchUserEmail = async () => {
+      try {
+        const response = await fetch("/api/auth/profile", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserEmail(data.user?.email || "");
+        }
+      } catch (e) {
+        console.error("Failed to fetch user profile", e);
+      }
+    };
+    fetchUserEmail();
     fetchAdmins();
   }, []);
 
