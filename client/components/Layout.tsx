@@ -261,24 +261,26 @@ export function Layout({ children }: LayoutProps) {
 
         <div className="flex-1 overflow-y-auto">
           <nav className="mt-6">
-            {sidebarItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-gray-100 ${
-                    isActive
-                      ? "text-primary bg-primary/10 border-r-2 border-primary"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className="w-5 h-5 mr-3" />
-                  {item.label}
-                </Link>
-              );
-            })}
+            {sidebarItems
+              .filter((item) => !item.adminOnly || currentUser?.role === "admin")
+              .map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-gray-100 ${
+                      isActive
+                        ? "text-primary bg-primary/10 border-r-2 border-primary"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <item.icon className="w-5 h-5 mr-3" />
+                    {item.label}
+                  </Link>
+                );
+              })}
           </nav>
         </div>
       </div>
