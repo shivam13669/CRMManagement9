@@ -72,6 +72,9 @@ interface AmbulanceRequest {
   assigned_staff_name: string;
   assigned_staff_phone?: string;
   forwarded_to_hospital_id?: number;
+  customer_signup_address?: string;
+  customer_signup_lat?: string;
+  customer_signup_lng?: string;
 }
 
 interface Hospital {
@@ -114,6 +117,12 @@ export default function AmbulanceManagement() {
     Record<number, string>
   >({});
   const [resolvingIds, setResolvingIds] = useState<Record<number, boolean>>({});
+  const [resolvedSignupAddresses, setResolvedSignupAddresses] = useState<
+    Record<number, string>
+  >({});
+  const [resolvingSignupIds, setResolvingSignupIds] = useState<
+    Record<number, boolean>
+  >({});
 
   const latLngRegex = /^\s*-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?\s*$/;
 
@@ -147,6 +156,26 @@ export default function AmbulanceManagement() {
     }
 
     setResolvingIds((s) => {
+      const copy = { ...s };
+      delete copy[request.id];
+      return copy;
+    });
+  };
+
+  const resolveSignupAddressForRequest = async (request: AmbulanceRequest) => {
+    if (!request) return;
+    const lat = request.customer_signup_lat;
+    const lng = request.customer_signup_lng;
+    if (!lat || !lng) return;
+    if (resolvedSignupAddresses[request.id] || resolvingSignupIds[request.id])
+      return;
+
+    setResolvingSignupIds((s) => ({ ...s, [request.id]: true }));
+    const address = await reverseGeocode(lat, lng);
+    if (address) {
+      setResolvedSignupAddresses((s) => ({ ...s, [request.id]: address }));
+    }
+    setResolvingSignupIds((s) => {
       const copy = { ...s };
       delete copy[request.id];
       return copy;
@@ -657,6 +686,7 @@ export default function AmbulanceManagement() {
                       setSelectedRequest(request);
                       setModalOpen(true);
                       resolveAddressForRequest(request);
+                      resolveSignupAddressForRequest(request);
                     }}
                     className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
                   >
@@ -755,6 +785,7 @@ export default function AmbulanceManagement() {
                       setSelectedRequest(request);
                       setModalOpen(true);
                       resolveAddressForRequest(request);
+                      resolveSignupAddressForRequest(request);
                     }}
                     className="bg-white border border-red-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer bg-red-50"
                   >
@@ -1035,6 +1066,23 @@ export default function AmbulanceManagement() {
                             : selectedRequest.pickup_address}
                         </p>
                       </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <MapPin className="w-4 h-4 text-purple-500" />
+                        <span className="font-medium text-gray-900">
+                          Signup Address
+                        </span>
+                      </div>
+                      <p className="text-gray-600 ml-6">
+                        {selectedRequest.customer_signup_lat &&
+                        selectedRequest.customer_signup_lng
+                          ? resolvedSignupAddresses[selectedRequest.id] ||
+                            `${selectedRequest.customer_signup_lat},${selectedRequest.customer_signup_lng}`
+                          : selectedRequest.customer_signup_address ||
+                            "Not available"}
+                      </p>
                     </div>
 
                     {selectedRequest.destination_address && (
