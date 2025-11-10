@@ -348,21 +348,37 @@ function AdminTabs({
 }) {
   const [activeTab, setActiveTab] = useState("create");
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="w-full grid grid-cols-2 h-9 p-0.5">
-        <TabsTrigger value="create" className="flex items-center gap-1.5 text-sm font-medium px-3 py-1 rounded-md">
-          <UserCheck className="h-3.5 w-3.5" /> Create Admin
-        </TabsTrigger>
-        <TabsTrigger value="manage" className="flex items-center gap-1.5 text-sm font-medium px-3 py-1 rounded-md">
-          <Users className="h-3.5 w-3.5" /> Manage Admins
-        </TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setActiveTab("create")}
+          className={`px-6 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+            activeTab === "create"
+              ? "bg-white text-primary shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <UserCheck className="w-4 h-4" />
+          Create Admin
+        </button>
+        <button
+          onClick={() => setActiveTab("manage")}
+          className={`px-6 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+            activeTab === "manage"
+              ? "bg-white text-primary shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Manage Admins
+        </button>
+      </div>
 
-      <TabsContent value="create">
+      {activeTab === "create" && (
         <CreateAdminUser />
-      </TabsContent>
+      )}
 
-      <TabsContent value="manage">
+      {activeTab === "manage" && (
         <ManageAdmins
           admins={admins}
           fetchAdmins={fetchAdmins}
@@ -373,8 +389,8 @@ function AdminTabs({
           setStatusFilter={setStatusFilter}
           exportAdminsCSV={exportAdminsCSV}
         />
-      </TabsContent>
-    </Tabs>
+      )}
+    </div>
   );
 }
 
