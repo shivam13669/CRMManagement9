@@ -277,6 +277,52 @@ function ManageAdmins() {
           <CardDescription>View and manage administrator accounts</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-gray-900">{admins.length}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Total Admins</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                    <span className="text-xl text-white">✔</span>
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-gray-900">{admins.filter(a => a.status === 'active').length}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Active Admins</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
+                    <span className="text-xl text-white">⚠</span>
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-gray-900">{admins.filter(a => a.status === 'suspended').length}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Suspended</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Search / Filter / Export */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -287,6 +333,32 @@ function ManageAdmins() {
                 className="pl-10"
               />
             </div>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto">Filter</Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Status</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="suspended">Suspended</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button variant="outline" onClick={() => exportAdminsCSV(filtered)}>
+              <Download className="w-4 h-4 mr-2" /> Export List
+            </Button>
+
             <Button variant="outline" onClick={fetchAdmins}>Refresh</Button>
           </div>
 
