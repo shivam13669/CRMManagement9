@@ -214,18 +214,18 @@ export default function AdminPage() {
         </div>
 
         {/* Stats Cards and Search/Filter (mirroring Customer Management layout) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
                     {admins.length}
                   </div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     Total Admins
                   </div>
                 </div>
