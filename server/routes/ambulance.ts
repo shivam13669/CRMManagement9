@@ -250,12 +250,16 @@ export const handleUpdateAmbulanceRequest: RequestHandler = async (
     // Update the request
     db.run(
       `
-      UPDATE ambulance_requests 
+      UPDATE ambulance_requests
       SET status = ?, assigned_staff_id = ?, notes = ?, updated_at = datetime('now')
       WHERE id = ?
     `,
       [status, assigned_staff_id || null, notes || null, requestId],
     );
+
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
 
     console.log(`🚑 Ambulance request ${requestId} updated by user ${userId}`);
 
