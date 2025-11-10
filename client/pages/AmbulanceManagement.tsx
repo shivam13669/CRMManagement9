@@ -167,7 +167,8 @@ export default function AmbulanceManagement() {
     const lat = request.customer_signup_lat;
     const lng = request.customer_signup_lng;
     if (!lat || !lng) return;
-    if (resolvedSignupAddresses[request.id] || resolvingSignupIds[request.id]) return;
+    if (resolvedSignupAddresses[request.id] || resolvingSignupIds[request.id])
+      return;
 
     setResolvingSignupIds((s) => ({ ...s, [request.id]: true }));
     const address = await reverseGeocode(lat, lng);
@@ -1067,23 +1068,24 @@ export default function AmbulanceManagement() {
                       </div>
                     </div>
 
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <MapPin className="w-4 h-4 text-purple-500" />
-                      <span className="font-medium text-gray-900">
-                        Signup Address
-                      </span>
+                    <div>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <MapPin className="w-4 h-4 text-purple-500" />
+                        <span className="font-medium text-gray-900">
+                          Signup Address
+                        </span>
+                      </div>
+                      <p className="text-gray-600 ml-6">
+                        {selectedRequest.customer_signup_lat &&
+                        selectedRequest.customer_signup_lng
+                          ? resolvedSignupAddresses[selectedRequest.id] ||
+                            `${selectedRequest.customer_signup_lat},${selectedRequest.customer_signup_lng}`
+                          : selectedRequest.customer_signup_address ||
+                            "Not available"}
+                      </p>
                     </div>
-                    <p className="text-gray-600 ml-6">
-                      {selectedRequest.customer_signup_lat &&
-                      selectedRequest.customer_signup_lng
-                        ? resolvedSignupAddresses[selectedRequest.id] ||
-                          `${selectedRequest.customer_signup_lat},${selectedRequest.customer_signup_lng}`
-                        : selectedRequest.customer_signup_address || "Not available"}
-                    </p>
-                  </div>
 
-                  {selectedRequest.destination_address && (
+                    {selectedRequest.destination_address && (
                       <div>
                         <div className="flex items-center space-x-2 mb-1">
                           <MapPin className="w-4 h-4 text-blue-500" />
