@@ -188,6 +188,33 @@ export async function createServer() {
     handleUpdateAmbulanceRequest,
   );
 
+  // Ambulance-Hospital routes
+  app.post(
+    "/api/ambulance/forward-to-hospital",
+    authenticateToken,
+    handleForwardAmbulanceToHospital,
+  );
+  app.get(
+    "/api/ambulance/hospitals",
+    authenticateToken,
+    handleGetHospitalsByState,
+  );
+  app.get(
+    "/api/hospital/service-requests",
+    authenticateToken,
+    handleGetHospitalServiceRequests,
+  );
+  app.post(
+    "/api/hospital/service-requests/:serviceRequestId/accept",
+    authenticateToken,
+    handleHospitalAcceptRequest,
+  );
+  app.post(
+    "/api/hospital/service-requests/:serviceRequestId/reject",
+    authenticateToken,
+    handleHospitalRejectRequest,
+  );
+
   // Appointment routes (doctors + admin for viewing, customers for creating)
   app.post("/api/appointments", authenticateToken, handleCreateAppointment);
   app.get("/api/appointments", authenticateToken, handleGetAppointments);
