@@ -484,6 +484,10 @@ export const handleUpdateAmbulanceStatus: RequestHandler = async (req, res) => {
       [status, notes || null, requestId],
     );
 
+    // Save database
+    const { saveDatabase } = await import("../database");
+    saveDatabase();
+
     console.log(
       `🚑 Ambulance request ${requestId} status updated to ${status} by user ${userId}`,
     );
