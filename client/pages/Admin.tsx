@@ -332,16 +332,121 @@ function ManageAdmins() {
                                 </DialogTrigger>
                                 <DialogContent className="max-w-2xl">
                                   <DialogHeader>
-                                    <DialogTitle>Admin Details</DialogTitle>
-                                    <DialogDescription>Complete information about {selectedUser?.full_name}</DialogDescription>
+                                    <DialogTitle>User Details</DialogTitle>
+                                    <DialogDescription>
+                                      Complete information about {selectedUser?.full_name}
+                                    </DialogDescription>
                                   </DialogHeader>
+
                                   {selectedUser && (
-                                    <div className="space-y-4 text-sm">
-                                      <div><span className="text-gray-500">Name:</span> {selectedUser.full_name}</div>
-                                      <div><span className="text-gray-500">Email:</span> {selectedUser.email}</div>
-                                      <div><span className="text-gray-500">Username:</span> @{selectedUser.username}</div>
-                                      <div><span className="text-gray-500">Status:</span> {selectedUser.status}</div>
-                                      <div><span className="text-gray-500">User ID:</span> #{selectedUser.id}</div>
+                                    <div className="space-y-6">
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div>
+                                          <h3 className="font-medium mb-2">Personal Information</h3>
+                                          <div className="space-y-2 text-sm">
+                                            <div className="flex items-center space-x-2">
+                                              <Users className="w-4 h-4 text-gray-400" />
+                                              <span>{selectedUser.full_name}</span>
+                                            </div>
+
+                                            <div className="flex items-center space-x-2">
+                                              <Users className="w-4 h-4 text-gray-400" />
+                                              <span>@{selectedUser.username}</span>
+                                            </div>
+
+                                            <div className="flex items-center space-x-2">
+                                              <Users className="w-4 h-4 text-gray-400" />
+                                              <span>{selectedUser.email}</span>
+                                            </div>
+
+                                            {selectedUser.phone && (
+                                              <div className="flex items-center space-x-2">
+                                                <Users className="w-4 h-4 text-gray-400" />
+                                                <span>{selectedUser.phone}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        <div>
+                                          <h3 className="font-medium mb-2">Account Details</h3>
+                                          <div className="space-y-2 text-sm">
+                                            <div className="flex items-center space-x-2">
+                                              <div className="w-4 h-4 flex items-center justify-center">
+                                                <UserCheck className="w-4 h-4" />
+                                              </div>
+                                              <span>
+                                                Role: {selectedUser.role?.charAt(0)?.toUpperCase() + selectedUser.role?.slice(1)}
+                                              </span>
+                                            </div>
+
+                                            <div className="flex items-center space-x-2">
+                                              {selectedUser.status === "active" ? (
+                                                <CheckCircle className="w-4 h-4 text-green-500" />
+                                              ) : (
+                                                <XCircle className="w-4 h-4 text-red-500" />
+                                              )}
+                                              <span>
+                                                Status: {selectedUser.status?.charAt(0)?.toUpperCase() + selectedUser.status?.slice(1)}
+                                              </span>
+                                            </div>
+
+                                            <div className="flex items-center space-x-2">
+                                              <Users className="w-4 h-4 text-gray-400" />
+                                              <span>User ID: #{selectedUser.id}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <div>
+                                        <h3 className="font-medium mb-2">Account Timeline</h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                          <div className="flex items-center space-x-2">
+                                            <Users className="w-4 h-4 text-gray-400" />
+                                            <span>
+                                              Created: {new Date(selectedUser.created_at).toLocaleDateString()} at {new Date(selectedUser.created_at).toLocaleTimeString()}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <Users className="w-4 h-4 text-gray-400" />
+                                            <span>
+                                              Updated: {new Date(selectedUser.updated_at).toLocaleDateString()} at {new Date(selectedUser.updated_at).toLocaleTimeString()}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex flex-wrap gap-2 pt-4">
+                                        {/* For admins, suspend/delete are disabled with warning tooltip */}
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <div>
+                                                <Button variant="outline" size="sm" className="flex-1 sm:flex-none" disabled>
+                                                  <ShieldOff className="w-4 h-4 mr-2" />
+                                                  Suspend User
+                                                </Button>
+                                              </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Suspending administrators is not allowed</TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <div>
+                                                <Button variant="destructive" size="sm" className="flex-1 sm:flex-none" disabled>
+                                                  <Trash2 className="w-4 h-4 mr-2" />
+                                                  Delete User
+                                                </Button>
+                                              </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Deleting administrators is not allowed</TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      </div>
                                     </div>
                                   )}
                                 </DialogContent>
