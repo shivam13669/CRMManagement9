@@ -21,9 +21,17 @@ import {
   Building2,
 } from "lucide-react";
 import { Button } from "./ui/button";
+import { authUtils } from "../lib/api";
 
 interface LayoutProps {
   children: React.ReactNode;
+}
+
+interface SidebarItem {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  path: string;
+  adminOnly?: boolean;
 }
 
 const sidebarItems = [
