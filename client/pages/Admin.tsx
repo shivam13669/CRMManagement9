@@ -203,13 +203,37 @@ function ManageAdmins() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return admins.filter(
-      (u) =>
+    return admins.filter((u) => {
+      const matchesSearch =
         u.full_name.toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
-        u.username.toLowerCase().includes(q),
-    );
-  }, [admins, search]);
+        u.username.toLowerCase().includes(q);
+
+      const matchesStatus =
+        statusFilter === "all" ? true : u.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [admins, search, statusFilter]);
+
+  const exportAdminsCSV = (items: AdminUser[]) => {
+    if (!items || items.length === 0) return;
+    const headers = ["id", "full_name", "username", "email", "status", "created_at"];
+    const rows = items.map((it) => [it.id, it.full_name, it.username, it.email, it.status, it.created_at]);
+    const csvContent = [headers, ...rows]
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "admins_export.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   const submitPassword = async () => {
     if (!pwdUser) return;
