@@ -48,7 +48,7 @@ const sidebarItems: SidebarItem[] = [
     path: "/pending-registrations",
   },
   { icon: Shield, label: "User Management", path: "/user-management" },
-  { icon: Shield, label: "Admin", path: "/admin", adminOnly: true },
+  { icon: UserCog, label: "Admin", path: "/admin", adminOnly: true },
   { icon: MessageSquare, label: "Feedback", path: "/feedback-management" },
   { icon: CreditCard, label: "Memberships", path: "/memberships" },
   { icon: Truck, label: "Ambulance Management", path: "/ambulance-management" },
