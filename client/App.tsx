@@ -163,6 +163,10 @@ function App() {
             {/* Hospital Management Routes */}
             <Route path="/hospital-dashboard" element={<HospitalDashboard />} />
             <Route
+              path="/hospital-service-requests"
+              element={<HospitalServiceRequests />}
+            />
+            <Route
               path="/hospital-ambulances"
               element={<HospitalAmbulances />}
             />
