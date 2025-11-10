@@ -162,6 +162,7 @@ function ManageAdmins() {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
