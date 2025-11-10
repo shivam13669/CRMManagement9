@@ -263,7 +263,9 @@ export function Layout({ children }: LayoutProps) {
         <div className="flex-1 overflow-y-auto">
           <nav className="mt-6">
             {sidebarItems
-              .filter((item) => !item.adminOnly || currentUser?.role === "admin")
+              .filter(
+                (item) => !item.adminOnly || currentUser?.role === "admin",
+              )
               .map((item) => {
                 const isActive = location.pathname === item.path;
                 return (

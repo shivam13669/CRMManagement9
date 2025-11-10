@@ -1,6 +1,12 @@
 import { Layout } from "../components/Layout";
 import { CreateAdminUser } from "../components/CreateAdminUser";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { authUtils } from "../lib/api";
 import { UserCheck } from "lucide-react";
 
@@ -40,9 +46,7 @@ export default function AdminPage() {
             <UserCheck className="h-8 w-8" />
             Admin Management
           </h1>
-          <p className="text-gray-600 mt-2">
-            Manage system administrators
-          </p>
+          <p className="text-gray-600 mt-2">Manage system administrators</p>
         </div>
 
         {/* Create Admin User Form */}
