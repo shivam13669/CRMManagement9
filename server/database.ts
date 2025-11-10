@@ -473,6 +473,20 @@ async function runMigrations(): Promise<void> {
     }
 
     console.log("��� All migrations completed");
+    // Migration 4: Add forwarding columns to ambulance_requests table
+    try {
+      const ambulanceTableInfo = db.exec("PRAGMA table_info(ambulance_requests)");
+      const hasForwardedColumn = ambulanceTableInfo[0]?.values.some((row) => row[1] === "forwarded_to_hospital_id");
+      if (!hasForwardedColumn) {
+        console.log("Adding forwarding columns to ambulance_requests table...");
+        db.run("ALTER TABLE ambulance_requests ADD COLUMN forwarded_to_hospital_id INTEGER");
+        db.run("ALTER TABLE ambulance_requests ADD COLUMN hospital_request_id INTEGER");
+        db.run("ALTER TABLE ambulance_requests ADD COLUMN is_read INTEGER DEFAULT 0");
+        console.log("Forwarding columns added successfully");
+      }
+    } catch (error) {
+      console.log("Forwarding columns migration skipped:", error.message);
+    }
   } catch (error) {
     console.error("❌ Error running migrations:", error);
   }
