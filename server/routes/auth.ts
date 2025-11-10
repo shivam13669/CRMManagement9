@@ -424,11 +424,9 @@ export const handleForgotPassword: RequestHandler = async (req, res) => {
     ).toString();
     if (isRateLimited(`ip:${ip}`) || isRateLimited(`email:${email}`)) {
       console.warn(`⏱️ Rate limit reached for ${ip} or ${email}`);
-      return res
-        .status(429)
-        .json({
-          error: "Too many password reset requests. Please try again later.",
-        });
+      return res.status(429).json({
+        error: "Too many password reset requests. Please try again later.",
+      });
     }
 
     // Generate token
@@ -666,14 +664,8 @@ export const handleCreateAdminUser: RequestHandler = async (req, res) => {
         .json({ error: "Only administrators can create admin users" });
     }
 
-    const {
-      full_name,
-      email,
-      password,
-      confirmPassword,
-      state,
-      district,
-    } = req.body;
+    const { full_name, email, password, confirmPassword, state, district } =
+      req.body;
 
     // Validate required fields
     if (!full_name || !email || !password || !confirmPassword) {
@@ -722,6 +714,21 @@ export const handleCreateAdminUser: RequestHandler = async (req, res) => {
 
     const userId = await createUser(adminUser);
 
+    // Create admin metadata with state and district
+    try {
+      const { db } = await import("../database");
+      db.run(
+        `INSERT OR REPLACE INTO admin_metadata (user_id, state, district, created_at, updated_at)
+         VALUES (?, ?, ?, datetime('now'), datetime('now'))`,
+        [userId, state, district],
+      );
+      console.log(
+        `✅ Admin metadata created: User ${userId}, State: ${state}, District: ${district}`,
+      );
+    } catch (error) {
+      console.warn("Failed to create admin metadata:", error);
+    }
+
     console.log(
       `✅ New admin user created: ${email} (ID: ${userId}) by admin ${(req as any).user.email}`,
     );
@@ -734,6 +741,8 @@ export const handleCreateAdminUser: RequestHandler = async (req, res) => {
         email,
         role: "admin",
         full_name,
+        state,
+        district,
       },
     });
   } catch (error) {

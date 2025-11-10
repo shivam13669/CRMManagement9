@@ -33,6 +33,13 @@ import {
   handleUpdateAmbulanceStatus,
 } from "./routes/ambulance";
 import {
+  handleForwardAmbulanceToHospital,
+  handleGetHospitalServiceRequests,
+  handleHospitalAcceptRequest,
+  handleHospitalRejectRequest,
+  handleGetHospitalsByState,
+} from "./routes/ambulance-hospital";
+import {
   handleCreateAppointment,
   handleGetAppointments,
   handleUpdateAppointment,
@@ -179,6 +186,33 @@ export async function createServer() {
     "/api/ambulance/requests/:requestId",
     authenticateToken,
     handleUpdateAmbulanceRequest,
+  );
+
+  // Ambulance-Hospital routes
+  app.post(
+    "/api/ambulance/forward-to-hospital",
+    authenticateToken,
+    handleForwardAmbulanceToHospital,
+  );
+  app.get(
+    "/api/ambulance/hospitals",
+    authenticateToken,
+    handleGetHospitalsByState,
+  );
+  app.get(
+    "/api/hospital/service-requests",
+    authenticateToken,
+    handleGetHospitalServiceRequests,
+  );
+  app.post(
+    "/api/hospital/service-requests/:serviceRequestId/accept",
+    authenticateToken,
+    handleHospitalAcceptRequest,
+  );
+  app.post(
+    "/api/hospital/service-requests/:serviceRequestId/reject",
+    authenticateToken,
+    handleHospitalRejectRequest,
   );
 
   // Appointment routes (doctors + admin for viewing, customers for creating)

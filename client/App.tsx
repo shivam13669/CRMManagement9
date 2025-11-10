@@ -53,6 +53,7 @@ import AmbulanceManagement from "./pages/AmbulanceManagement";
 import StaffAmbulanceManagement from "./pages/StaffAmbulanceManagement";
 import HospitalDashboard from "./pages/HospitalDashboard";
 import HospitalManagement from "./pages/HospitalManagement";
+import HospitalServiceRequests from "./pages/HospitalServiceRequests";
 import HospitalAmbulances from "./pages/HospitalAmbulances";
 import HospitalStaff from "./pages/HospitalStaff";
 import HospitalInventory from "./pages/HospitalInventory";
@@ -161,6 +162,10 @@ function App() {
 
             {/* Hospital Management Routes */}
             <Route path="/hospital-dashboard" element={<HospitalDashboard />} />
+            <Route
+              path="/hospital-service-requests"
+              element={<HospitalServiceRequests />}
+            />
             <Route
               path="/hospital-ambulances"
               element={<HospitalAmbulances />}

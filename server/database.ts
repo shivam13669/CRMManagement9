@@ -132,6 +132,19 @@ function createTables(): void {
       )
     `);
 
+    // Admin metadata - stores state and district for admins
+    db.run(`
+      CREATE TABLE IF NOT EXISTS admin_metadata (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL UNIQUE,
+        state TEXT,
+        district TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      )
+    `);
+
     // Customers table
     db.run(`
       CREATE TABLE IF NOT EXISTS customers (
@@ -207,14 +220,19 @@ function createTables(): void {
         emergency_type TEXT NOT NULL,
         customer_condition TEXT,
         contact_number TEXT NOT NULL,
-        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'assigned', 'on_the_way', 'completed', 'cancelled')),
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'assigned', 'on_the_way', 'completed', 'cancelled', 'forwarded_to_hospital')),
         priority TEXT DEFAULT 'normal' CHECK(priority IN ('low', 'normal', 'high', 'critical')),
         assigned_staff_id INTEGER,
+        forwarded_to_hospital_id INTEGER,
+        hospital_request_id INTEGER,
+        is_read INTEGER DEFAULT 0,
         notes TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_user_id) REFERENCES users (id) ON DELETE CASCADE,
-        FOREIGN KEY (assigned_staff_id) REFERENCES users (id) ON DELETE SET NULL
+        FOREIGN KEY (assigned_staff_id) REFERENCES users (id) ON DELETE SET NULL,
+        FOREIGN KEY (forwarded_to_hospital_id) REFERENCES users (id) ON DELETE SET NULL,
+        FOREIGN KEY (hospital_request_id) REFERENCES hospital_service_requests (id) ON DELETE SET NULL
       )
     `);
 
@@ -310,16 +328,22 @@ function createTables(): void {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         hospital_user_id INTEGER NOT NULL,
         customer_user_id INTEGER,
+        admin_user_id INTEGER,
+        ambulance_request_id INTEGER,
         service_type TEXT NOT NULL,
         description TEXT NOT NULL,
-        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'in_progress', 'completed', 'cancelled')),
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled')),
         priority TEXT DEFAULT 'normal' CHECK(priority IN ('low', 'normal', 'high', 'critical')),
         assigned_staff_id INTEGER,
+        hospital_response TEXT,
+        hospital_response_at DATETIME,
         notes TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (hospital_user_id) REFERENCES users (id) ON DELETE CASCADE,
         FOREIGN KEY (customer_user_id) REFERENCES users (id) ON DELETE SET NULL,
+        FOREIGN KEY (admin_user_id) REFERENCES users (id) ON DELETE SET NULL,
+        FOREIGN KEY (ambulance_request_id) REFERENCES ambulance_requests (id) ON DELETE CASCADE,
         FOREIGN KEY (assigned_staff_id) REFERENCES users (id) ON DELETE SET NULL
       )
     `);
@@ -449,6 +473,30 @@ async function runMigrations(): Promise<void> {
     }
 
     console.log("��� All migrations completed");
+    // Migration 4: Add forwarding columns to ambulance_requests table
+    try {
+      const ambulanceTableInfo = db.exec(
+        "PRAGMA table_info(ambulance_requests)",
+      );
+      const hasForwardedColumn = ambulanceTableInfo[0]?.values.some(
+        (row) => row[1] === "forwarded_to_hospital_id",
+      );
+      if (!hasForwardedColumn) {
+        console.log("Adding forwarding columns to ambulance_requests table...");
+        db.run(
+          "ALTER TABLE ambulance_requests ADD COLUMN forwarded_to_hospital_id INTEGER",
+        );
+        db.run(
+          "ALTER TABLE ambulance_requests ADD COLUMN hospital_request_id INTEGER",
+        );
+        db.run(
+          "ALTER TABLE ambulance_requests ADD COLUMN is_read INTEGER DEFAULT 0",
+        );
+        console.log("Forwarding columns added successfully");
+      }
+    } catch (error) {
+      console.log("Forwarding columns migration skipped:", error.message);
+    }
   } catch (error) {
     console.error("❌ Error running migrations:", error);
   }
