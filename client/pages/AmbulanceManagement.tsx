@@ -16,6 +16,9 @@ import {
   Users,
   Activity,
   X,
+  Send,
+  Building2,
+  ChevronDown,
 } from "lucide-react";
 import {
   Card,
@@ -43,6 +46,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../components/ui/dialog";
+import { useToast } from "../hooks/use-toast";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
 
 interface AmbulanceRequest {
   id: number;
@@ -54,15 +64,27 @@ interface AmbulanceRequest {
   status: string;
   priority: string;
   notes: string;
+  is_read?: number;
   created_at: string;
   patient_name: string;
   patient_email: string;
   patient_phone: string;
   assigned_staff_name: string;
   assigned_staff_phone?: string;
+  forwarded_to_hospital_id?: number;
+}
+
+interface Hospital {
+  id: number;
+  full_name: string;
+  hospital_name: string;
+  phone_number: string;
+  state: string;
+  district: string;
 }
 
 export default function AmbulanceManagement() {
+  const { toast } = useToast();
   const [requests, setRequests] = useState<AmbulanceRequest[]>([]);
   const [filteredRequests, setFilteredRequests] = useState<AmbulanceRequest[]>(
     [],
@@ -72,9 +94,20 @@ export default function AmbulanceManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
   const [selectedRequest, setSelectedRequest] =
     useState<AmbulanceRequest | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(
+    null,
+  );
+  const [hospitalSearchTerm, setHospitalSearchTerm] = useState("");
+  const [forwardingRequestId, setForwardingRequestId] = useState<number | null>(
+    null,
+  );
+  const [isForwarding, setIsForwarding] = useState(false);
 
   // Cache for resolved addresses when pickup_address contains lat,lng
   const [resolvedAddresses, setResolvedAddresses] = useState<
@@ -152,10 +185,31 @@ export default function AmbulanceManagement() {
     }
   };
 
+  const fetchHospitals = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      const response = await fetch("/api/ambulance/hospitals", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setHospitals(data.hospitals || []);
+      }
+    } catch (error) {
+      console.error("Error fetching hospitals:", error);
+    }
+  };
+
   useEffect(() => {
     fetchRequests();
+    fetchHospitals();
 
-    // Set up auto-refresh every 30 seconds for real-time updates
     const interval = setInterval(() => {
       fetchRequests();
     }, 30000);
@@ -163,9 +217,14 @@ export default function AmbulanceManagement() {
     return () => clearInterval(interval);
   }, []);
 
-  // Filter requests based on search term, status, and priority
+  // Filter requests based on search term, status, priority, and tab
   useEffect(() => {
     let filtered = requests;
+
+    // Filter by tab
+    if (activeTab === "unread") {
+      filtered = filtered.filter((r) => !r.is_read);
+    }
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -194,7 +253,64 @@ export default function AmbulanceManagement() {
     }
 
     setFilteredRequests(filtered);
-  }, [requests, searchTerm, statusFilter, priorityFilter]);
+  }, [requests, searchTerm, statusFilter, priorityFilter, activeTab]);
+
+  const handleForwardToHospital = async () => {
+    if (!forwardingRequestId || !selectedHospital) {
+      toast({
+        title: "Error",
+        description: "Please select a hospital",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsForwarding(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      const response = await fetch("/api/ambulance/forward-to-hospital", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          requestId: forwardingRequestId,
+          hospitalId: selectedHospital.id,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: `Request forwarded to ${selectedHospital.hospital_name}`,
+        });
+        setForwardDialogOpen(false);
+        setSelectedHospital(null);
+        setHospitalSearchTerm("");
+        setForwardingRequestId(null);
+        fetchRequests(false);
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Error",
+          description: error.error || "Failed to forward request",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error forwarding request:", error);
+      toast({
+        title: "Error",
+        description: "Failed to forward request",
+        variant: "destructive",
+      });
+    } finally {
+      setIsForwarding(false);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -204,9 +320,15 @@ export default function AmbulanceManagement() {
             Pending
           </Badge>
         );
-      case "assigned":
+      case "forwarded_to_hospital":
         return (
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            Forwarded
+          </Badge>
+        );
+      case "assigned":
+        return (
+          <Badge variant="secondary" className="bg-green-100 text-green-800">
             Assigned
           </Badge>
         );
@@ -264,8 +386,10 @@ export default function AmbulanceManagement() {
     switch (status) {
       case "pending":
         return <Clock className="w-4 h-4 text-yellow-600" />;
+      case "forwarded_to_hospital":
+        return <Send className="w-4 h-4 text-blue-600" />;
       case "assigned":
-        return <User className="w-4 h-4 text-blue-600" />;
+        return <User className="w-4 h-4 text-green-600" />;
       case "on_the_way":
         return <Truck className="w-4 h-4 text-orange-600" />;
       case "completed":
@@ -304,15 +428,23 @@ export default function AmbulanceManagement() {
     }
   };
 
-  // Get summary statistics
   const stats = {
     total: requests.length,
+    unread: requests.filter((r) => !r.is_read).length,
     pending: requests.filter((r) => r.status === "pending").length,
+    forwarded: requests.filter((r) => r.status === "forwarded_to_hospital")
+      .length,
     assigned: requests.filter((r) => r.status === "assigned").length,
-    onTheWay: requests.filter((r) => r.status === "on_the_way").length,
     completed: requests.filter((r) => r.status === "completed").length,
-    critical: requests.filter((r) => r.priority === "critical").length,
   };
+
+  const filteredHospitals = hospitals.filter(
+    (h) =>
+      h.hospital_name
+        .toLowerCase()
+        .includes(hospitalSearchTerm.toLowerCase()) ||
+      h.district.toLowerCase().includes(hospitalSearchTerm.toLowerCase()),
+  );
 
   if (loading) {
     return (
@@ -371,6 +503,20 @@ export default function AmbulanceManagement() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Unread</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {stats.unread}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
                 <Clock className="w-5 h-5 text-yellow-600" />
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pending</p>
@@ -385,11 +531,11 @@ export default function AmbulanceManagement() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <User className="w-5 h-5 text-blue-600" />
+                <Send className="w-5 h-5 text-blue-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Assigned</p>
+                  <p className="text-sm font-medium text-gray-600">Forwarded</p>
                   <p className="text-2xl font-bold text-blue-600">
-                    {stats.assigned}
+                    {stats.forwarded}
                   </p>
                 </div>
               </div>
@@ -399,13 +545,11 @@ export default function AmbulanceManagement() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <Truck className="w-5 h-5 text-orange-600" />
+                <User className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    On The Way
-                  </p>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {stats.onTheWay}
+                  <p className="text-sm font-medium text-gray-600">Assigned</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {stats.assigned}
                   </p>
                 </div>
               </div>
@@ -417,23 +561,11 @@ export default function AmbulanceManagement() {
               <div className="flex items-center space-x-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Completed
+                  </p>
                   <p className="text-2xl font-bold text-green-600">
                     {stats.completed}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Critical</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    {stats.critical}
                   </p>
                 </div>
               </div>
@@ -462,6 +594,9 @@ export default function AmbulanceManagement() {
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="forwarded_to_hospital">
+                    Forwarded
+                  </SelectItem>
                   <SelectItem value="assigned">Assigned</SelectItem>
                   <SelectItem value="on_the_way">On The Way</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
@@ -485,104 +620,314 @@ export default function AmbulanceManagement() {
           </CardContent>
         </Card>
 
-        {/* Requests List - Grid of Boxes */}
-        {filteredRequests.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Truck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {requests.length === 0
-                  ? "No Ambulance Requests"
-                  : "No Matching Requests"}
-              </h3>
-              <p className="text-gray-600">
-                {requests.length === 0
-                  ? "No ambulance requests have been submitted yet."
-                  : "No requests match your current filters."}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredRequests.map((request) => (
-              <div
-                key={request.id}
-                onClick={() => {
-                  setSelectedRequest(request);
-                  setModalOpen(true);
-                  // resolve address when opening details
-                  resolveAddressForRequest(request);
-                }}
-                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
-              >
-                <div className="mb-3">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900">
-                      Request #{request.id}
-                    </h3>
-                    <div className="flex gap-2">
-                      {getPriorityBadge(request.priority)}
-                      {getStatusBadge(request.status)}
+        {/* Tabs */}
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as "all" | "unread")}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="all">
+              All Requests ({stats.total})
+            </TabsTrigger>
+            <TabsTrigger value="unread">
+              Unread Requests ({stats.unread})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-4">
+            {filteredRequests.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Truck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {requests.length === 0
+                      ? "No Ambulance Requests"
+                      : "No Matching Requests"}
+                  </h3>
+                  <p className="text-gray-600">
+                    {requests.length === 0
+                      ? "No ambulance requests have been submitted yet."
+                      : "No requests match your current filters."}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    onClick={() => {
+                      setSelectedRequest(request);
+                      setModalOpen(true);
+                      resolveAddressForRequest(request);
+                    }}
+                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                  >
+                    <div className="mb-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900">
+                          Request #{request.id}
+                        </h3>
+                        <div className="flex gap-2">
+                          {getPriorityBadge(request.priority)}
+                          {getStatusBadge(request.status)}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {request.emergency_type}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {getTimeAgo(request.created_at)}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <span className="text-gray-700 truncate">
+                          {request.patient_name}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Phone className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <span className="text-gray-700">
+                          {request.contact_number}
+                        </span>
+                      </div>
+
+                      <div className="flex items-start space-x-2">
+                        <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-600 line-clamp-2">
+                          {latLngRegex.test(request.pickup_address)
+                            ? resolvedAddresses[request.id] ||
+                              request.pickup_address
+                            : request.pickup_address}
+                        </span>
+                      </div>
+                    </div>
+
+                    {request.status === "pending" && (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="w-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setForwardingRequestId(request.id);
+                            setForwardDialogOpen(true);
+                          }}
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Forward to Hospital
+                        </Button>
+                      </div>
+                    )}
+
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs text-gray-500">
+                        {formatDateTime(request.created_at)}
+                      </p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {request.emergency_type}
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="unread" className="space-y-4">
+            {filteredRequests.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <CheckCircle className="w-12 h-12 text-green-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    All Caught Up
+                  </h3>
+                  <p className="text-gray-600">
+                    No unread ambulance requests at the moment.
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {getTimeAgo(request.created_at)}
-                  </p>
-                </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    onClick={() => {
+                      setSelectedRequest(request);
+                      setModalOpen(true);
+                      resolveAddressForRequest(request);
+                    }}
+                    className="bg-white border border-red-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer bg-red-50"
+                  >
+                    <div className="mb-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900">
+                          Request #{request.id}
+                        </h3>
+                        <div className="flex gap-2">
+                          {getPriorityBadge(request.priority)}
+                          {getStatusBadge(request.status)}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {request.emergency_type}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {getTimeAgo(request.created_at)}
+                      </p>
+                    </div>
 
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-700 truncate">
-                      {request.patient_name}
-                    </span>
-                  </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <span className="text-gray-700 truncate">
+                          {request.patient_name}
+                        </span>
+                      </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-700">
-                      {request.contact_number}
-                    </span>
-                  </div>
+                      <div className="flex items-center space-x-2">
+                        <Phone className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <span className="text-gray-700">
+                          {request.contact_number}
+                        </span>
+                      </div>
 
-                  <div className="flex items-start space-x-2">
-                    <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-600 line-clamp-2">
-                      {latLngRegex.test(request.pickup_address)
-                        ? resolvedAddresses[request.id] ||
-                          request.pickup_address
-                        : request.pickup_address}
-                    </span>
-                    {latLngRegex.test(request.pickup_address) && (
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                          request.pickup_address,
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-2 text-xs text-blue-600 hover:underline"
-                        onClick={(e) => e.stopPropagation()}
+                      <div className="flex items-start space-x-2">
+                        <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-600 line-clamp-2">
+                          {latLngRegex.test(request.pickup_address)
+                            ? resolvedAddresses[request.id] ||
+                              request.pickup_address
+                            : request.pickup_address}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-red-200">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setForwardingRequestId(request.id);
+                          setForwardDialogOpen(true);
+                        }}
                       >
-                        View on Google Maps
-                      </a>
-                    )}
+                        <Send className="w-4 h-4 mr-2" />
+                        Forward to Hospital
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
 
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <p className="text-xs text-gray-500">
-                    {formatDateTime(request.created_at)}
-                  </p>
+        {/* Forward to Hospital Dialog */}
+        <Dialog open={forwardDialogOpen} onOpenChange={setForwardDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Forward to Hospital</DialogTitle>
+              <DialogDescription>
+                Select a hospital to forward this ambulance request to
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">
+                  Search Hospitals
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Search hospital name or district..."
+                    value={hospitalSearchTerm}
+                    onChange={(e) => setHospitalSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
               </div>
-            ))}
-          </div>
-        )}
 
-        {/* Modal for Request Details */}
+              <div className="border rounded-lg max-h-64 overflow-y-auto">
+                {filteredHospitals.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-gray-500">
+                    {hospitals.length === 0
+                      ? "No hospitals available"
+                      : "No hospitals match your search"}
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {filteredHospitals.map((hospital) => (
+                      <button
+                        key={hospital.id}
+                        onClick={() => setSelectedHospital(hospital)}
+                        className={`w-full text-left p-3 hover:bg-gray-50 transition-colors ${
+                          selectedHospital?.id === hospital.id
+                            ? "bg-blue-50 border-l-4 border-blue-600"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex items-start space-x-2">
+                          <Building2 className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">
+                              {hospital.hospital_name}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {hospital.district}, {hospital.state}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {hospital.phone_number}
+                            </p>
+                          </div>
+                          {selectedHospital?.id === hospital.id && (
+                            <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {selectedHospital && (
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm font-medium text-blue-900">
+                    Selected: {selectedHospital.hospital_name}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setForwardDialogOpen(false);
+                  setSelectedHospital(null);
+                  setHospitalSearchTerm("");
+                  setForwardingRequestId(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleForwardToHospital}
+                disabled={!selectedHospital || isForwarding}
+              >
+                {isForwarding ? "Forwarding..." : "Forward Request"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Request Details Modal */}
         <Dialog
           open={modalOpen}
           onOpenChange={(open) => {
@@ -593,13 +938,9 @@ export default function AmbulanceManagement() {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Request Details</DialogTitle>
-              <DialogDescription>
-                Manage and view details for the selected request
-              </DialogDescription>
             </DialogHeader>
 
             <div className="p-6 space-y-6">
-              {/* Header Info */}
               {selectedRequest && (
                 <>
                   <div>
@@ -625,7 +966,6 @@ export default function AmbulanceManagement() {
 
                   <Separator />
 
-                  {/* Patient Information */}
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="flex items-center space-x-2 mb-3">
                       <Users className="w-5 h-5 text-blue-600" />
@@ -665,21 +1005,10 @@ export default function AmbulanceManagement() {
                         <span className="text-blue-700">
                           {selectedRequest.contact_number}
                         </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 px-2 text-xs ml-2"
-                          onClick={() =>
-                            window.open(`tel:${selectedRequest.contact_number}`)
-                          }
-                        >
-                          Call
-                        </Button>
                       </div>
                     </div>
                   </div>
 
-                  {/* Patient Condition */}
                   {selectedRequest.patient_condition && (
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="flex items-center space-x-2 mb-2">
@@ -694,7 +1023,6 @@ export default function AmbulanceManagement() {
                     </div>
                   )}
 
-                  {/* Location Info */}
                   <div className="space-y-3">
                     <div>
                       <div className="flex items-center space-x-2 mb-1">
@@ -710,54 +1038,6 @@ export default function AmbulanceManagement() {
                               selectedRequest.pickup_address
                             : selectedRequest.pickup_address}
                         </p>
-                        {latLngRegex.test(selectedRequest.pickup_address) && (
-                          <div className="mt-2 flex items-center space-x-3">
-                            <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                selectedRequest.pickup_address,
-                              )}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline"
-                            >
-                              Open in Google Maps
-                            </a>
-                            {resolvingIds[selectedRequest.id] ? (
-                              <span className="text-sm text-gray-500">
-                                Resolving address...
-                              </span>
-                            ) : null}
-                          </div>
-                        )}
-
-                        {/* Show customer's signup captured address (if any) */}
-                        {selectedRequest.customer_signup_address && (
-                          <div className="mt-3">
-                            <p className="text-sm font-medium text-gray-900">
-                              Signup Address
-                            </p>
-                            <p className="text-gray-600">
-                              {selectedRequest.customer_signup_address}
-                            </p>
-                            <a
-                              href={
-                                selectedRequest.customer_signup_lat &&
-                                selectedRequest.customer_signup_lng
-                                  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                      `${selectedRequest.customer_signup_lat},${selectedRequest.customer_signup_lng}`,
-                                    )}`
-                                  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                      selectedRequest.customer_signup_address,
-                                    )}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline mt-2 inline-block"
-                            >
-                              Open Signup Address in Google Maps
-                            </a>
-                          </div>
-                        )}
                       </div>
                     </div>
 
@@ -776,7 +1056,6 @@ export default function AmbulanceManagement() {
                     )}
                   </div>
 
-                  {/* Assigned Staff */}
                   {selectedRequest.assigned_staff_name && (
                     <>
                       <Separator />
@@ -804,86 +1083,17 @@ export default function AmbulanceManagement() {
                               <span className="text-green-700">
                                 {selectedRequest.assigned_staff_phone}
                               </span>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 px-2 text-xs ml-2"
-                                onClick={() =>
-                                  window.open(
-                                    `tel:${selectedRequest.assigned_staff_phone}`,
-                                  )
-                                }
-                              >
-                                Call
-                              </Button>
                             </div>
                           )}
                         </div>
                       </div>
                     </>
                   )}
-
-                  {/* Notes */}
-                  {selectedRequest.notes && (
-                    <>
-                      <Separator />
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <FileText className="w-5 h-5 text-gray-600" />
-                          <span className="font-semibold text-gray-900">
-                            Staff Notes
-                          </span>
-                        </div>
-                        <p className="text-gray-700">{selectedRequest.notes}</p>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Status Progress */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <span className="text-sm font-medium text-gray-900 block mb-3">
-                      Status Progress
-                    </span>
-                    <div className="flex items-center space-x-4">
-                      <div
-                        className={`flex items-center space-x-2 ${["pending", "assigned", "on_the_way", "completed"].includes(selectedRequest.status) ? "text-blue-600" : "text-gray-400"}`}
-                      >
-                        <div
-                          className={`w-2 h-2 rounded-full ${selectedRequest.status === "pending" || selectedRequest.status === "assigned" || selectedRequest.status === "on_the_way" || selectedRequest.status === "completed" ? "bg-blue-600" : "bg-gray-300"}`}
-                        ></div>
-                        <span className="text-xs font-medium">Requested</span>
-                      </div>
-                      <div
-                        className={`flex items-center space-x-2 ${["assigned", "on_the_way", "completed"].includes(selectedRequest.status) ? "text-blue-600" : "text-gray-400"}`}
-                      >
-                        <div
-                          className={`w-2 h-2 rounded-full ${selectedRequest.status === "assigned" || selectedRequest.status === "on_the_way" || selectedRequest.status === "completed" ? "bg-blue-600" : "bg-gray-300"}`}
-                        ></div>
-                        <span className="text-xs font-medium">Assigned</span>
-                      </div>
-                      <div
-                        className={`flex items-center space-x-2 ${["on_the_way", "completed"].includes(selectedRequest.status) ? "text-orange-600" : "text-gray-400"}`}
-                      >
-                        <div
-                          className={`w-2 h-2 rounded-full ${selectedRequest.status === "on_the_way" || selectedRequest.status === "completed" ? "bg-orange-600" : "bg-gray-300"}`}
-                        ></div>
-                        <span className="text-xs font-medium">On The Way</span>
-                      </div>
-                      <div
-                        className={`flex items-center space-x-2 ${selectedRequest.status === "completed" ? "text-green-600" : "text-gray-400"}`}
-                      >
-                        <div
-                          className={`w-2 h-2 rounded-full ${selectedRequest.status === "completed" ? "bg-green-600" : "bg-gray-300"}`}
-                        ></div>
-                        <span className="text-xs font-medium">Completed</span>
-                      </div>
-                    </div>
-                  </div>
                 </>
               )}
             </div>
 
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-2 px-6 pb-6">
               <Button
                 variant="outline"
                 onClick={() => {
