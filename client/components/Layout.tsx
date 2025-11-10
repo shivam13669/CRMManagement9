@@ -285,7 +285,10 @@ export function Layout({ children }: LayoutProps) {
           <nav className="mt-6">
             {sidebarItems
               .filter(
-                (item) => !item.adminOnly || (currentUser?.role === "admin" && userEmail === "admin179e@gmail.com"),
+                (item) =>
+                  !item.adminOnly ||
+                  (currentUser?.role === "admin" &&
+                    userEmail === "admin179e@gmail.com"),
               )
               .map((item) => {
                 const isActive = location.pathname === item.path;

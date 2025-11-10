@@ -500,9 +500,7 @@ async function runMigrations(): Promise<void> {
 
     // Migration 6: Add state column to customers table
     try {
-      const customerTableInfo = db.exec(
-        "PRAGMA table_info(customers)",
-      );
+      const customerTableInfo = db.exec("PRAGMA table_info(customers)");
       const hasStateColumn = customerTableInfo[0]?.values.some(
         (row) => row[1] === "state",
       );

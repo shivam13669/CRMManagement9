@@ -183,7 +183,10 @@ export default function AdminPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (currentUser?.role !== "admin" || (userEmail && userEmail !== "admin179e@gmail.com")) {
+  if (
+    currentUser?.role !== "admin" ||
+    (userEmail && userEmail !== "admin179e@gmail.com")
+  ) {
     return (
       <Layout>
         <Card className="border-red-200 bg-red-50">
@@ -198,7 +201,8 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600">
-              Only the central system administrator (admin179e@gmail.com) can manage admin users.
+              Only the central system administrator (admin179e@gmail.com) can
+              manage admin users.
             </p>
           </CardContent>
         </Card>
