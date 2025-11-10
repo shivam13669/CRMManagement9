@@ -186,13 +186,9 @@ export const handleGetAmbulanceRequests: RequestHandler = async (req, res) => {
       LEFT JOIN customers c ON u.id = c.user_id
       LEFT JOIN users staff ON ar.assigned_staff_id = staff.id`;
 
-      // Filter by admin's state if not system admin
-      if (role === "admin" && adminState) {
-        query += ` WHERE c.state = ?`;
-        result = db.exec(query + ` ORDER BY ar.created_at DESC`, [adminState]);
-      } else {
-        result = db.exec(query + ` ORDER BY ar.created_at DESC`);
-      }
+      // For now, don't filter by state in fallback - state column may not exist yet
+      // This will be fixed once migration runs
+      result = db.exec(query + ` ORDER BY ar.created_at DESC`);
     }
 
     let requests = [];
