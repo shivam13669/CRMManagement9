@@ -113,6 +113,12 @@ export default function MyAmbulanceRequests() {
             Pending
           </Badge>
         );
+      case "forwarded_to_hospital":
+        return (
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+            In Progress
+          </Badge>
+        );
       case "assigned":
         return (
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
