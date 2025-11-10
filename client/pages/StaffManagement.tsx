@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../components/Layout";
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  Mail, 
+import {
+  Users,
+  Search,
+  Filter,
+  Download,
+  Eye,
+  Mail,
   Phone,
   MapPin,
   Calendar,
@@ -14,6 +14,18 @@ import {
   Shield,
   Activity
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 import {
   Card,
   CardContent,
@@ -50,6 +62,7 @@ export default function StaffManagement() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     fetchStaff();
@@ -90,11 +103,17 @@ export default function StaffManagement() {
     }
   };
 
-  const filteredStaff = staff.filter(member =>
-    member.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (member.phone && member.phone.includes(searchTerm))
-  );
+  const filteredStaff = staff.filter(member => {
+    const matchesSearch =
+      member.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (member.phone && member.phone.includes(searchTerm));
+
+    const matchesStatus =
+      statusFilter === "all" ? true : member.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -188,22 +207,47 @@ export default function StaffManagement() {
         </div>
 
         {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              type="text"
-              placeholder="Search staff by name, email, or phone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button variant="outline">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
-        </div>
+        <Card>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Search staff by name, email, or phone..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Status</label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="suspended">Suspended</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Staff List */}
         <Card>
