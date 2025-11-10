@@ -34,7 +34,7 @@ interface SidebarItem {
   adminOnly?: boolean;
 }
 
-const sidebarItems = [
+const sidebarItems: SidebarItem[] = [
   { icon: Activity, label: "Dashboard", path: "/admin-dashboard" },
   { icon: Users, label: "Customers", path: "/customers" },
   { icon: Users, label: "Doctors", path: "/doctors" },
